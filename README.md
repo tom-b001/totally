@@ -8,6 +8,13 @@ trip.
 
 Built for a single user, fully offline, no accounts, no backend.
 
+## Preview the UI
+
+**[👉 Open the interactive mockup](https://tom-b001.github.io/totally/mockup/)**
+— a quick preview of the screens (basket & budget, scanning, confirm card).
+This is a throwaway mockup for feedback, not the real app. Best viewed on a
+phone.
+
 ## How it works
 
 1. Set a **budget** for the trip.
