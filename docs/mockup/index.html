@@ -82,7 +82,7 @@
   .progress.over > span { background: var(--red); }
 
   /* Basket list */
-  .list { flex: 1; overflow-y: auto; padding: 8px 0 96px; }
+  .list { flex: 1; overflow-y: auto; padding: 8px 0 150px; }
   .row {
     background: var(--card); margin: 0 0 1px; padding: 12px 18px;
     display: flex; align-items: center; gap: 12px;
@@ -104,6 +104,16 @@
     background: var(--accent); color: #fff; border: none; border-radius: 16px;
     height: 54px; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;
     box-shadow: 0 8px 20px rgba(10,132,255,.4);
+  }
+  .actionbar {
+    position: absolute; left: 18px; right: 18px; bottom: 22px; z-index: 25;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .actionbar .scanbtn { position: static; }
+  .manualbtn {
+    background: #fff; color: var(--accent); border: 1.5px solid var(--accent);
+    border-radius: 16px; height: 46px; font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
   }
 
   /* Camera screen */
@@ -218,8 +228,16 @@
             <div class="stepper"><button>−</button><span class="qty">2</span><button>+</button></div>
             <div class="line">£1.44</div>
           </div>
+          <div class="row">
+            <div class="info"><div class="name">Chocolate Bars <span style="color:var(--aldi-orange);font-weight:700">· offer</span></div><div class="unit">3 for £1.00 (~£0.33 each)</div></div>
+            <div class="stepper"><button>−</button><span class="qty">3</span><button>+</button></div>
+            <div class="line">£1.00</div>
+          </div>
         </div>
-        <button class="scanbtn">📷 Scan next item</button>
+        <div class="actionbar">
+          <button class="scanbtn">📷 Scan next item</button>
+          <button class="manualbtn">✏️ Add manually</button>
+        </div>
       </div></div>
     </div>
 
@@ -272,6 +290,49 @@
               <label>Price</label>
               <div class="input price">£0.79</div>
             </div>
+            <div class="actions">
+              <button class="cancel2">Cancel</button>
+              <button class="add">Add to basket</button>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- MANUAL ENTRY -->
+    <div class="stage">
+      <div class="caption">4 · Add manually (offers)</div>
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span class="right">5G ▪ 87%</span></div>
+        <div class="header">
+          <div class="title">Remaining</div>
+          <div class="remaining">£17.44 left</div>
+          <div class="subline"><span>Total <b>£22.56</b></span><span>Budget <b>£40.00</b></span></div>
+          <div class="progress"><span style="width:56%"></span></div>
+        </div>
+        <div class="confirm-screen">
+          <div class="sheet">
+            <div class="grab"></div>
+            <h2>Add item manually</h2>
+            <p class="why" style="color:var(--muted)">For offers, multibuys, or anything tricky to scan.</p>
+            <div class="field">
+              <label>Item name (optional)</label>
+              <div class="input">Chocolate Bars</div>
+            </div>
+            <div style="display:flex; gap:10px">
+              <div class="field" style="flex:1">
+                <label>Quantity</label>
+                <div class="input">3</div>
+              </div>
+              <div class="field" style="flex:1.4">
+                <label>Total price</label>
+                <div class="input price">£1.00</div>
+              </div>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin:-4px 0 14px">
+              e.g. "3 for £1.00" → quantity 3, total £1.00
+            </p>
             <div class="actions">
               <button class="cancel2">Cancel</button>
               <button class="add">Add to basket</button>

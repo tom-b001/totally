@@ -11,9 +11,20 @@ and asks the Scanner for captures.
 - Running **total** and the **budget** (tap budget to edit).
 - Scrollable **basket list**: each row = name, unit price, quantity with **+/−**
   steppers, line total. Swipe or tap to **edit/delete**.
-- Prominent **Scan next item** button (bottom, thumb-reachable).
+- Prominent **Scan next item** button (bottom, thumb-reachable), with a
+  secondary **Add manually** button beside/under it for offers, multibuys, or
+  anything awkward to scan.
 - **New trip** action (clears basket, confirms first).
 - Empty state prompts to set a budget and scan the first item.
+
+### Manual entry (modal)
+- Opens on **Add manually**. Simple form: optional **name**, **price**,
+  **quantity**.
+- For a multibuy offer ("2 for £1.50") she sets quantity 2 and enters the
+  **offer total** (£1.50); the basket line shows "2 for £1.50" and stores that
+  total exactly (see basket-domain: `addOffer`). For a normal item she leaves
+  quantity 1 and enters the single price.
+- **Add** commits; **Cancel** discards. Designed to be fast — few taps.
 
 ### Scan (camera, modal)
 - Opens on **Scan next item**. Live camera with a target frame.
