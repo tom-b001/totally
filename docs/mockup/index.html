@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Aldi Budget Scanner — UI Mockup</title>
+<style>
+  :root {
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --ink: #1c1c1e;
+    --muted: #8e8e93;
+    --line: #e5e5ea;
+    --accent: #0a84ff;
+    --green: #34c759;
+    --red: #ff3b30;
+    --aldi-blue: #00246e;
+    --aldi-orange: #ff7300;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #d9d9df;
+    color: var(--ink);
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 16px 64px;
+  }
+  .intro {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .intro h1 { font-size: 24px; margin: 0 0 6px; color: var(--aldi-blue); }
+  .intro p { margin: 0; color: #444; font-size: 15px; }
+  .intro .note {
+    display: inline-block; margin-top: 12px; padding: 6px 12px;
+    background: #fff4e0; color: #7a4a00; border-radius: 999px; font-size: 13px;
+  }
+
+  .phones {
+    display: flex; flex-wrap: wrap; gap: 34px; justify-content: center; align-items: flex-start;
+  }
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .stage .caption { font-size: 13px; color: #333; font-weight: 600; }
+
+  /* iPhone frame */
+  .phone {
+    width: 300px; height: 640px;
+    background: #000; border-radius: 46px; padding: 12px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.28);
+    position: relative;
+  }
+  .screen {
+    width: 100%; height: 100%;
+    background: var(--bg); border-radius: 36px; overflow: hidden;
+    position: relative; display: flex; flex-direction: column;
+  }
+  .notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 26px; background: #000; border-radius: 16px; z-index: 30;
+  }
+  .statusbar {
+    height: 44px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; font-size: 13px; font-weight: 600; color: var(--ink); z-index: 20;
+  }
+  .statusbar .right { letter-spacing: 1px; }
+
+  /* Home header */
+  .header {
+    padding: 6px 18px 16px; background: var(--card); border-bottom: 1px solid var(--line);
+  }
+  .header .title { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .remaining { font-size: 40px; font-weight: 800; margin: 2px 0 2px; color: var(--green); }
+  .remaining.over { color: var(--red); }
+  .subline { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+  .subline b { color: var(--ink); font-weight: 600; }
+  .progress { height: 6px; background: var(--line); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .progress > span { display: block; height: 100%; background: var(--green); border-radius: 3px; }
+  .progress.over > span { background: var(--red); }
+
+  /* Basket list */
+  .list { flex: 1; overflow-y: auto; padding: 8px 0 96px; }
+  .row {
+    background: var(--card); margin: 0 0 1px; padding: 12px 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .row .info { flex: 1; min-width: 0; }
+  .row .name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .unit { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper button {
+    width: 26px; height: 26px; border-radius: 50%; border: none;
+    background: var(--line); color: var(--ink); font-size: 16px; line-height: 1; font-weight: 700;
+  }
+  .stepper .qty { min-width: 16px; text-align: center; font-size: 14px; font-weight: 600; }
+  .row .line { min-width: 54px; text-align: right; font-size: 15px; font-weight: 700; }
+
+  /* Scan button */
+  .scanbtn {
+    position: absolute; left: 18px; right: 18px; bottom: 22px; z-index: 25;
+    background: var(--accent); color: #fff; border: none; border-radius: 16px;
+    height: 54px; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 8px 20px rgba(10,132,255,.4);
+  }
+
+  /* Camera screen */
+  .camera { flex: 1; background: #111; position: relative; display: flex; flex-direction: column; }
+  .camera .viewfinder { flex: 1; position: relative; overflow: hidden; }
+  .label {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-1deg);
+    width: 210px; background: #fff; border-radius: 8px; padding: 12px 14px; color: #111;
+    box-shadow: 0 6px 24px rgba(0,0,0,.5);
+  }
+  .label .brand { font-size: 11px; font-weight: 700; color: #333; letter-spacing: .5px; }
+  .label .pname { font-size: 17px; font-weight: 800; line-height: 1.1; margin: 2px 0 4px; }
+  .label .size { font-size: 11px; color: #666; }
+  .label .price { font-size: 40px; font-weight: 800; text-align: right; color: #111; }
+  .label .code { font-size: 10px; color: #999; }
+  .label .unitp { font-size: 11px; color: #666; text-align: right; }
+  .scanframe {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 240px; height: 150px; border: 3px solid var(--green); border-radius: 14px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,.35);
+  }
+  .scanframe .tick {
+    position: absolute; right: -14px; top: -14px; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800;
+  }
+  .camera .hint {
+    position: absolute; bottom: 90px; left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; opacity: .9;
+  }
+  .camera .cancel {
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(255,255,255,.15); color: #fff; border: none; border-radius: 14px;
+    padding: 12px 28px; font-size: 16px; font-weight: 600;
+  }
+
+  /* Confirm card */
+  .confirm-screen { flex: 1; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; }
+  .sheet {
+    background: var(--card); width: 100%; border-radius: 22px 22px 0 0; padding: 20px 18px 24px;
+  }
+  .sheet .grab { width: 40px; height: 5px; background: var(--line); border-radius: 3px; margin: 0 auto 14px; }
+  .sheet h2 { font-size: 18px; margin: 0 0 4px; }
+  .sheet .why { font-size: 13px; color: var(--red); margin: 0 0 16px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .field .input {
+    background: var(--bg); border-radius: 12px; padding: 12px 14px; font-size: 16px; font-weight: 600; border: 1px solid var(--line);
+  }
+  .field .input.price { font-size: 22px; font-weight: 800; }
+  .sheet .actions { display: flex; gap: 10px; margin-top: 8px; }
+  .sheet .actions button { flex: 1; height: 50px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; }
+  .sheet .actions .cancel2 { background: var(--line); color: var(--ink); }
+  .sheet .actions .add { background: var(--green); color: #fff; }
+
+  .footer { text-align: center; color: #555; font-size: 13px; margin-top: 34px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="intro">
+    <h1>Aldi Budget Scanner</h1>
+    <p>A quick preview of how the app will look. Tap around — this is just a mockup, not the real app yet.</p>
+    <div class="note">Sample data · nothing here is final · your feedback shapes it</div>
+  </div>
+
+  <div class="phones">
+
+    <!-- HOME / BASKET -->
+    <div class="stage">
+      <div class="caption">1 · Basket &amp; budget</div>
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span class="right">5G ▪ 87%</span></div>
+        <div class="header">
+          <div class="title">Remaining</div>
+          <div class="remaining">£17.44 left</div>
+          <div class="subline"><span>Total <b>£22.56</b></span><span>Budget <b>£40.00</b></span></div>
+          <div class="progress"><span style="width:56%"></span></div>
+        </div>
+        <div class="list">
+          <div class="row">
+            <div class="info"><div class="name">Imperials / Mintoes / Humbugs</div><div class="unit">£0.79 each · 200g</div></div>
+            <div class="stepper"><button>−</button><span class="qty">1</span><button>+</button></div>
+            <div class="line">£0.79</div>
+          </div>
+          <div class="row">
+            <div class="info"><div class="name">Semi Skimmed Milk 2 Pint</div><div class="unit">£1.45 each</div></div>
+            <div class="stepper"><button>−</button><span class="qty">2</span><button>+</button></div>
+            <div class="line">£2.90</div>
+          </div>
+          <div class="row">
+            <div class="info"><div class="name">Wholemeal Bread 800g</div><div class="unit">£0.69 each</div></div>
+            <div class="stepper"><button>−</button><span class="qty">1</span><button>+</button></div>
+            <div class="line">£0.69</div>
+          </div>
+          <div class="row">
+            <div class="info"><div class="name">Free Range Eggs (12)</div><div class="unit">£2.19 each</div></div>
+            <div class="stepper"><button>−</button><span class="qty">1</span><button>+</button></div>
+            <div class="line">£2.19</div>
+          </div>
+          <div class="row">
+            <div class="info"><div class="name">Chicken Breast Fillets 650g</div><div class="unit">£3.99 each</div></div>
+            <div class="stepper"><button>−</button><span class="qty">2</span><button>+</button></div>
+            <div class="line">£7.98</div>
+          </div>
+          <div class="row">
+            <div class="info"><div class="name">Cheddar Cheese Block 400g</div><div class="unit">£2.49 each</div></div>
+            <div class="stepper"><button>−</button><span class="qty">1</span><button>+</button></div>
+            <div class="line">£2.49</div>
+          </div>
+          <div class="row">
+            <div class="info"><div class="name">Bananas (5 pack)</div><div class="unit">£0.72 each</div></div>
+            <div class="stepper"><button>−</button><span class="qty">2</span><button>+</button></div>
+            <div class="line">£1.44</div>
+          </div>
+        </div>
+        <button class="scanbtn">📷 Scan next item</button>
+      </div></div>
+    </div>
+
+    <!-- CAMERA -->
+    <div class="stage">
+      <div class="caption">2 · Scanning a label</div>
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar" style="color:#fff"><span>9:41</span><span class="right">5G ▪ 87%</span></div>
+        <div class="camera">
+          <div class="viewfinder">
+            <div class="scanframe"><div class="tick">✓</div></div>
+            <div class="label">
+              <div class="brand">DOMINION</div>
+              <div class="pname">Imperials /<br>Mintoes / Humbugs</div>
+              <div class="size">200g</div>
+              <div class="price">79ᵖ</div>
+              <div class="code">85752</div>
+              <div class="unitp">39.5p per 100g</div>
+            </div>
+            <div class="hint">Hold steady — reading price &amp; name…</div>
+          </div>
+          <button class="cancel">Cancel</button>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- CONFIRM CARD -->
+    <div class="stage">
+      <div class="caption">3 · Confirm (only if unsure)</div>
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span class="right">5G ▪ 87%</span></div>
+        <div class="header">
+          <div class="title">Remaining</div>
+          <div class="remaining">£17.44 left</div>
+          <div class="subline"><span>Total <b>£22.56</b></span><span>Budget <b>£40.00</b></span></div>
+          <div class="progress"><span style="width:56%"></span></div>
+        </div>
+        <div class="confirm-screen">
+          <div class="sheet">
+            <div class="grab"></div>
+            <h2>Check this item</h2>
+            <p class="why">The price was a little hard to read — please confirm.</p>
+            <div class="field">
+              <label>Item name</label>
+              <div class="input">Imperials / Mintoes / Humbugs</div>
+            </div>
+            <div class="field">
+              <label>Price</label>
+              <div class="input price">£0.79</div>
+            </div>
+            <div class="actions">
+              <button class="cancel2">Cancel</button>
+              <button class="add">Add to basket</button>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <div class="footer">Mockup for feedback only · Aldi Budget Scanner</div>
+</div>
+</body>
+</html>
