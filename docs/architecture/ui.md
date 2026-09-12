@@ -11,8 +11,8 @@ and asks the Scanner for captures.
 - Running **total** and the **budget** (tap budget to edit).
 - Scrollable **basket list**: each row = name, unit price, quantity with **+/−**
   steppers, line total. Swipe or tap to **edit/delete**.
-- Prominent **Scan next item** button (bottom, thumb-reachable), with a
-  secondary **Add manually** button beside/under it for offers, multibuys, or
+- Two side-by-side buttons at the bottom (thumb-reachable): a primary **Scan
+  next item** and a secondary **Add manually** for offers, multibuys, or
   anything awkward to scan.
 - **New trip** action (clears basket, confirms first).
 - Empty state prompts to set a budget and scan the first item.
