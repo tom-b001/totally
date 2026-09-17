@@ -8,3 +8,10 @@
 # Passive beads exports — real sync is via Dolt (bd dolt push), so don't track these
 .beads/issues.jsonl
 .beads/interactions.jsonl
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.build/
+.DS_Store
