@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var showNewTripConfirm = false
     @State private var budgetText = ""
     @State private var scanner = VisionKitScanner()
+    private let captureFeedback: CaptureFeedbackPlaying = CaptureFeedback()
 
     var body: some View {
         NavigationStack {
@@ -204,12 +205,10 @@ struct HomeView: View {
     // MARK: - Bottom bar
 
     private func scanNextItem() async {
-        switch await scanner.scanNextItem() {
-        case .captured(let capture):
-            store.add(name: capture.name, unitPriceInPence: capture.priceInPence)
-        case .cancelled, .failed:
-            break
-        }
+        let result = await scanner.scanNextItem()
+        guard let capture = result.captureToAutoAdd else { return }
+        store.add(name: capture.name, unitPriceInPence: capture.priceInPence)
+        captureFeedback.playAutoAddFeedback()
     }
 
     private var bottomBar: some View {
