@@ -375,21 +375,19 @@ struct HomeView: View {
                 Task { await scanNextItem() }
             } label: {
                 Label("Scan next item", systemImage: "camera.viewfinder")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, minHeight: 40)
             }
             .buttonStyle(.borderedProminent)
-            .controlSize(.large)
 
             Button {
                 showManualEntry = true
             } label: {
                 Label("Add manually", systemImage: "plus")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, minHeight: 40)
             }
             .buttonStyle(.bordered)
-            .controlSize(.large)
         }
         .padding()
         .background(.bar)
