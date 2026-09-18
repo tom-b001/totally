@@ -162,9 +162,27 @@ enum CaptureExtractor {
     /// Handles `£2.49` / `£2.49p`-style pounds and `79p` / `79 p`-style pence.
     /// Returns the first (and normally only) match per line.
     static func parsePrice(from text: String) -> Int? {
+        // Recover common OCR misreads of the pound sign. This is a UK-only app:
+        // a leading "€", or a leading "E"/"e" sitting immediately before a
+        // money-shaped number, is a misread "£" — not a euro price and not a
+        // word. Rewrite it to "£" *before* the euro sign would otherwise be
+        // dropped. The number must look like money (has a decimal part, e.g.
+        // "1.75") so a bare "E"/word like "Euro Sponge" or "E45 Cream" is left
+        // untouched and never matched as a price.
+        let poundMisreadRecovered = text.replacingOccurrences(
+            of: #"^\s*[€Ee]\s*(?=\d+\.\d)"#, with: "£", options: .regularExpression
+        )
+        // A leading "€" before any number (even without a decimal, e.g. "€2")
+        // is still a misread "£" in this app; recover it too. "E"/"e" is only
+        // treated as a misread when a decimal money shape follows (above), to
+        // avoid swallowing letters that begin a product name.
+        let euroRecovered = poundMisreadRecovered.replacingOccurrences(
+            of: #"^\s*€\s*(?=\d)"#, with: "£", options: .regularExpression
+        )
+
         // Normalise comma decimals (`£2,49`, `39,5p`) to dots so European-style
         // OCR reads parse the same as `.`-decimals.
-        let normalized = text.replacingOccurrences(
+        let normalized = euroRecovered.replacingOccurrences(
             of: #"(?<=\d),(?=\d)"#, with: ".", options: .regularExpression
         )
 

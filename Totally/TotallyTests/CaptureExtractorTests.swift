@@ -201,4 +201,52 @@ struct CaptureExtractorTests {
         #expect(capture?.name == "GRANDESSA Peanut Butter Smooth/Crunchy")
         #expect(capture?.isConfident == true)
     }
+
+    // MARK: - Misread £ recovery (€ / E) (totally-716.9)
+
+    @Test
+    func misreadPoundSignAsEuroOrEIsRecovered() {
+        // A wrong-locale OCR read transcribes "£" as "€" or "E"/"e". This is a
+        // UK-only app, so a currency-looking leading € / E before a money shape
+        // is a misread pound, not a euro price.
+        #expect(CaptureExtractor.parsePrice(from: "€ 1.75") == 175)
+        #expect(CaptureExtractor.parsePrice(from: "€1.75") == 175)
+        #expect(CaptureExtractor.parsePrice(from: "E1.75") == 175)
+        #expect(CaptureExtractor.parsePrice(from: "e1.75") == 175)
+    }
+
+    @Test
+    func bareEurEuroWordsDoNotMatchAsPrice() {
+        // A bare "E"/"e" or a euro word not immediately fronting a money-shaped
+        // number must NOT be recovered as a price (avoid swallowing letters
+        // that begin a product name).
+        #expect(CaptureExtractor.parsePrice(from: "Euro Sponge") == nil)
+        #expect(CaptureExtractor.parsePrice(from: "E45 Cream") == nil)
+        #expect(CaptureExtractor.parsePrice(from: "Extra Large") == nil)
+    }
+
+    @Test
+    func realMoserRothLabelWithMisreadPoundExtracts() {
+        // Real device log (Moser Roth £1.75) in a wrong locale: the price block
+        // exploded into "€ 1.75" (misread £) + "£1.75 per 100g" (per-unit small
+        // print). The misread £ must be recovered and the per-unit line ignored.
+        let lines = [
+            RecognizedLine(
+                text: "MOSER ROTH\nOrganic Bars\n85% Dark/ 70% Dark/ Caramel & Sea Salt/ Blonde\n100g",
+                boundingArea: 26000, confidence: 0
+            ),
+            RecognizedLine(text: "NEW!", boundingArea: 500, confidence: 0),
+            RecognizedLine(text: "€ 1.75\n£1.75 per 100g", boundingArea: 12000, confidence: 0),
+        ]
+
+        let capture = CaptureExtractor.extract(from: lines)
+
+        #expect(capture?.priceInPence == 175)
+        // Name keeps the brand + descriptor lines, dropping the weight ("100g")
+        // and the per-unit / misread-price block, matching how the existing
+        // bestName joins a multi-line name block.
+        #expect(capture?.name == "MOSER ROTH Organic Bars 85% Dark/ 70% Dark/ Caramel & Sea Salt/ Blonde")
+        #expect(capture?.name.contains("Organic Bars") == true)
+        #expect(capture?.isConfident == true)
+    }
 }
