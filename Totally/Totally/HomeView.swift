@@ -43,11 +43,24 @@ struct HomeView: View {
                 }
             }
             .fullScreenCover(isPresented: Bindable(scanner).isPresenting) {
-                ScannerCameraView(
-                    onRecognizedText: { lines in scanner.handleRecognizedText(lines) },
-                    onCancel: { scanner.handleCancel() }
-                )
-                .ignoresSafeArea()
+                ZStack(alignment: .topTrailing) {
+                    ScannerCameraView(
+                        onRecognizedText: { lines in scanner.handleRecognizedText(lines) },
+                        onCancel: { scanner.handleCancel() }
+                    )
+                    .ignoresSafeArea()
+
+                    Button {
+                        scanner.handleCancel()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundStyle(.white, .black.opacity(0.6))
+                            .symbolRenderingMode(.palette)
+                    }
+                    .padding()
+                    .accessibilityLabel("Cancel scan")
+                }
             }
             .alert("Set budget", isPresented: $showBudgetEditor) {
                 TextField("0.00", text: $budgetText)

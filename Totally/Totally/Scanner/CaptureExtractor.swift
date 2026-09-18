@@ -26,14 +26,42 @@ enum CaptureExtractor {
     /// A price must land in this range to be considered plausible (1p...£999.99).
     private static let plausiblePriceRange = 1...99_999
 
-    /// Minimum OCR confidence (of the line the price was read from) required
-    /// for a capture to be confident.
+    /// Minimum OCR confidence required for a capture to be confident — but
+    /// only applied when the recognizer actually reports a confidence.
+    ///
+    /// VisionKit's live `DataScannerViewController` tracking reports a
+    /// per-item confidence of `0` even on clean reads (unlike a static
+    /// `VNRecognizeTextRequest`), so a hard `>= threshold` gate would reject
+    /// every real scan. We therefore treat a reported confidence of `0` as
+    /// "unknown" and fall back to the structural signals (plausible price +
+    /// non-empty name); a *positive* confidence below the threshold still
+    /// marks the read as not confident. See docs/architecture/scanner.md.
     private static let confidentThreshold: Float = 0.5
 
     /// Turns one batch of recognised lines into a best-guess `Capture`, or
     /// `nil` if nothing price-like was found at all.
     static func extract(from lines: [RecognizedLine]) -> Capture? {
-        let candidates = lines.compactMap { line -> (line: RecognizedLine, pence: Int)? in
+        // VisionKit's live scanner groups a shelf label into a few multi-line
+        // *blocks* (e.g. the whole name block, and a price block that contains
+        // both the headline price and the small-print per-unit price). Explode
+        // each block into physical lines so price/name logic works per line,
+        // while keeping the parent block's bounding area as the font-size proxy.
+        let physicalLines: [RecognizedLine] = lines.flatMap { block in
+            block.text
+                .split(whereSeparator: \.isNewline)
+                .map { sub in
+                    RecognizedLine(
+                        text: sub.trimmingCharacters(in: .whitespaces),
+                        boundingArea: block.boundingArea,
+                        confidence: block.confidence
+                    )
+                }
+        }
+
+        let candidates = physicalLines.compactMap { line -> (line: RecognizedLine, pence: Int)? in
+            // Ignore per-unit "small print" prices (e.g. "39.5p per 100g"):
+            // they aren't the shelf price we want to capture.
+            guard !isPerUnitPrice(line.text) else { return nil }
             guard let pence = parsePrice(from: line.text) else { return nil }
             return (line, pence)
         }
@@ -44,15 +72,18 @@ enum CaptureExtractor {
             return nil
         }
 
-        let nameCandidates = lines.filter { $0.text != priceMatch.line.text }
-        let name = nameCandidates.max(by: { $0.boundingArea < $1.boundingArea })?.text
-            ?? lines.first(where: { $0.text != priceMatch.line.text })?.text
-            ?? ""
+        // Name: prefer the largest-area *block* that isn't the price block,
+        // joining its lines so a multi-line name ("DOMINION\nImperials/
+        // Mintoes/ Humbugs\n200g") is kept whole rather than truncated to its
+        // first line. Price/per-unit/code/weight lines within it are dropped.
+        let name = bestName(from: lines, excludingPriceLine: priceMatch.line.text)
 
         let plausiblePrice = plausiblePriceRange.contains(priceMatch.pence)
-        let isConfident = plausiblePrice
-            && !name.isEmpty
-            && priceMatch.line.confidence >= confidentThreshold
+        // Confidence only counts against us when it's actually reported
+        // (> 0). A reported 0 means "unknown" for live tracking, not "bad".
+        let confidence = priceMatch.line.confidence
+        let confidenceOK = confidence == 0 || confidence >= confidentThreshold
+        let isConfident = plausiblePrice && !name.isEmpty && confidenceOK
 
         return Capture(
             name: name,
@@ -61,19 +92,86 @@ enum CaptureExtractor {
         )
     }
 
+    /// A per-unit "small print" price like `39.5p per 100g` / `£1.20 per kg`.
+    private static func isPerUnitPrice(_ text: String) -> Bool {
+        text.range(of: #"(?i)\bper\b"#, options: .regularExpression) != nil
+    }
+
+    /// The internal Aldi product code: a bare 4-6 digit number with no price
+    /// marker. Not a name and not a price.
+    private static func isProductCode(_ text: String) -> Bool {
+        text.range(of: #"^\d{4,6}$"#, options: .regularExpression) != nil
+    }
+
+    /// A bare pack size / weight line like `200g`, `1L`, `6 x 30g`, `500ml`.
+    private static func isWeight(_ text: String) -> Bool {
+        text.range(
+            of: #"(?i)^\d+(\.\d+)?\s*(g|kg|ml|l|cl|x\b.*)$"#,
+            options: .regularExpression
+        ) != nil
+    }
+
+    /// Builds the product name from the largest-area *block* that isn't the
+    /// price block. The block's lines are joined (so a multi-line name stays
+    /// whole), with price/per-unit/code/weight/empty lines removed, and a
+    /// trailing weight/size line dropped.
+    private static func bestName(from blocks: [RecognizedLine], excludingPriceLine priceLine: String) -> String {
+        // The name block is the largest-area block that isn't purely the price
+        // and carries at least one plain (non-price/code/weight) line.
+        let nameBlock = blocks
+            .filter { block in
+                let lines = physicalLines(of: block.text)
+                let hasPlainLine = lines.contains { line in
+                    !line.isEmpty
+                        && line != priceLine
+                        && parsePrice(from: line) == nil
+                        && !isProductCode(line)
+                        && !isWeight(line)
+                }
+                return hasPlainLine
+            }
+            .max(by: { $0.boundingArea < $1.boundingArea })
+
+        guard let nameBlock else { return "" }
+
+        let kept = physicalLines(of: nameBlock.text).filter { line in
+            !line.isEmpty
+                && line != priceLine
+                && !isPerUnitPrice(line)
+                && parsePrice(from: line) == nil
+                && !isProductCode(line)
+                && !isWeight(line)
+        }
+        return kept.joined(separator: " ")
+    }
+
+    /// Splits a recognised text block into trimmed, non-empty physical lines.
+    private static func physicalLines(of text: String) -> [String] {
+        text.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+    }
+
+
     /// Parses a single line of text for a price, returning integer pence.
     /// Handles `£2.49` / `£2.49p`-style pounds and `79p` / `79 p`-style pence.
     /// Returns the first (and normally only) match per line.
     static func parsePrice(from text: String) -> Int? {
+        // Normalise comma decimals (`£2,49`, `39,5p`) to dots so European-style
+        // OCR reads parse the same as `.`-decimals.
+        let normalized = text.replacingOccurrences(
+            of: #"(?<=\d),(?=\d)"#, with: ".", options: .regularExpression
+        )
+
         // £x.xx or £x -> pounds, converted to pence.
-        if let match = text.range(of: #"£\s*(\d+)(?:\.(\d{1,2}))?"#, options: .regularExpression) {
-            let matched = String(text[match])
+        if let match = normalized.range(of: #"£\s*(\d+)(?:\.(\d{1,2}))?"#, options: .regularExpression) {
+            let matched = String(normalized[match])
             return poundsMatchToPence(matched)
         }
 
-        // xxp / xx p -> already pence.
-        if let match = text.range(of: #"(?<![\d.])(\d{1,4})\s*p\b"#, options: .regularExpression, range: nil) {
-            let matched = String(text[match])
+        // xxp / xx p -> already pence. The `(?<![\d.,])` lookbehind stops us
+        // matching the fractional part of a decimal (e.g. the `5` in `39.5p`).
+        if let match = normalized.range(of: #"(?<![\d.,])(\d{1,4})\s*p\b"#, options: .regularExpression) {
+            let matched = String(normalized[match])
             let digits = matched.filter { $0.isNumber }
             return Int(digits)
         }

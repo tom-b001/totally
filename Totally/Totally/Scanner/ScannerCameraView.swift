@@ -11,6 +11,9 @@
 
 import SwiftUI
 import VisionKit
+import os.log
+
+private let logger = Logger(subsystem: "com.totally.app", category: "Scanner")
 
 /// Callback-driven wrapper: reports each batch of recognised text lines as
 /// they're read, and reports if the user cancels.
@@ -31,17 +34,32 @@ struct ScannerCameraView: UIViewControllerRepresentable {
         let scanner = DataScannerViewController(
             recognizedDataTypes: [.text()],
             qualityLevel: .accurate,
+            recognizesMultipleItems: true,
             isHighFrameRateTrackingEnabled: false,
             isPinchToZoomEnabled: true,
             isGuidanceEnabled: true,
             isHighlightingEnabled: true
         )
         scanner.delegate = context.coordinator
-        try? scanner.startScanning()
+        // Deliberately NOT starting scanning here: `DataScannerViewController`
+        // must already be in the window/view hierarchy for `startScanning()`
+        // to actually engage recognition — calling it this early throws (and
+        // silently does nothing useful) even though the camera preview and
+        // guidance overlay still render. See `updateUIViewController`.
         return scanner
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        guard !context.coordinator.hasStartedScanning,
+              let scanner = uiViewController as? DataScannerViewController else { return }
+        context.coordinator.hasStartedScanning = true
+        do {
+            try scanner.startScanning()
+            logger.debug("DataScannerViewController.startScanning() succeeded")
+        } catch {
+            logger.error("DataScannerViewController.startScanning() failed: \(error, privacy: .public)")
+        }
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(onRecognizedText: onRecognizedText)
@@ -49,6 +67,7 @@ struct ScannerCameraView: UIViewControllerRepresentable {
 
     final class Coordinator: NSObject, DataScannerViewControllerDelegate {
         private let onRecognizedText: (_ lines: [RecognizedLine]) -> Void
+        var hasStartedScanning = false
 
         init(onRecognizedText: @escaping (_ lines: [RecognizedLine]) -> Void) {
             self.onRecognizedText = onRecognizedText
@@ -56,8 +75,10 @@ struct ScannerCameraView: UIViewControllerRepresentable {
 
         func dataScanner(
             _ dataScanner: DataScannerViewController,
-            didAddItems addedItems: [RecognizedItem]
+            didAdd addedItems: [RecognizedItem],
+            allItems: [RecognizedItem]
         ) {
+            logger.debug("didAdd: \(addedItems.count) item(s), allItems: \(allItems.count)")
             let lines: [RecognizedLine] = addedItems.compactMap { item in
                 guard case .text(let text) = item else { return nil }
                 let confidence = text.observation.topCandidates(1).first?.confidence ?? 0
