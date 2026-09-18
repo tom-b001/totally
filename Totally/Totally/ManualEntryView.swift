@@ -21,6 +21,16 @@ struct ManualEntryView: View {
     @State private var priceText: String = ""
     @State private var quantity: Int = 1
 
+    /// Which field the keyboard is attached to. Focusing this on appear means
+    /// the keyboard/cursor is ready immediately instead of only after the
+    /// user's first tap lands (which otherwise brings the keyboard up cold).
+    @FocusState private var focusedField: Field?
+
+    private enum Field: Hashable {
+        case name
+        case price
+    }
+
     private var parsedPence: Int? { Money.pence(fromPoundsString: priceText) }
     private var canAdd: Bool { parsedPence != nil }
 
@@ -29,20 +39,29 @@ struct ManualEntryView: View {
             Form {
                 Section("Item") {
                     TextField("Name (optional)", text: $name)
+                        .focused($focusedField, equals: .name)
                     HStack {
                         Text("Price")
                         Spacer()
                         TextField("0.00", text: $priceText)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
+                            .focused($focusedField, equals: .price)
                     }
                     Stepper(value: $quantity, in: 1...99) {
-                        Text("Quantity: \(quantity)")
+                        HStack {
+                            Text("Quantity")
+                            Spacer()
+                            Text("\(quantity)")
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
             .navigationTitle("Add manually")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear { focusedField = .name }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

@@ -30,7 +30,6 @@ struct HomeView: View {
                 basketList
                 bottomBar
             }
-            .navigationTitle("Basket")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("New trip") { showNewTripConfirm = true }
@@ -118,9 +117,11 @@ struct HomeView: View {
                 .font(.system(size: 44, weight: .bold, design: .rounded))
                 .foregroundStyle(trip.isOverBudget ? Color.red : Color.primary)
                 .contentTransition(.numericText())
-            Text(remainingSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(trip.isOverBudget ? Color.red : Color.secondary)
+            if let subtitle = remainingSubtitle {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(trip.isOverBudget ? Color.red : Color.secondary)
+            }
 
             HStack(spacing: 24) {
                 labelledValue("Total", Money.string(fromPence: trip.totalInPence))
@@ -138,7 +139,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
-        .background(.background)
+        .background(Color(.systemBackground))
     }
 
     private func labelledValue(_ label: String, _ value: String) -> some View {
@@ -158,8 +159,8 @@ struct HomeView: View {
         return "\(Money.string(fromPence: trip.remainingInPence)) left"
     }
 
-    private var remainingSubtitle: String {
-        trip.isOverBudget ? "You're over budget" : "remaining of your budget"
+    private var remainingSubtitle: String? {
+        trip.isOverBudget ? "You're over budget" : nil
     }
 
     // MARK: - Basket list
@@ -173,8 +174,15 @@ struct HomeView: View {
                 emptyState
             }
         } else {
-            List {
-                Section {
+            // The summary is a fixed view above the List rather than a pinned
+            // List section header: a plain List's pinned header doesn't
+            // reliably occlude rows scrolling behind it (they bleed through
+            // the system row background). Keeping it outside the scroll view
+            // makes it a genuine top layer the rows scroll underneath.
+            VStack(spacing: 0) {
+                summaryHeader
+                Divider()
+                List {
                     ForEach(trip.items) { item in
                         basketRow(item)
                     }
@@ -183,16 +191,9 @@ struct HomeView: View {
                             store.remove(id: trip.items[index].id)
                         }
                     }
-                } header: {
-                    VStack(spacing: 0) {
-                        summaryHeader
-                        Divider()
-                    }
-                    .listRowInsets(EdgeInsets())
-                    .textCase(nil)
                 }
+                .listStyle(.plain)
             }
-            .listStyle(.plain)
         }
     }
 
