@@ -271,4 +271,41 @@ struct VisionKitScannerTests {
         let scanResult = await result
         #expect(scanResult == .captured(Capture(name: "Bananas", priceInPence: 59, isConfident: true)))
     }
+
+    @Test
+    func partialFrameOmittingPriceDoesNotDiscardInProgressDwell() async {
+        // Regression for totally-716.10: real-device evidence (Moser Roth)
+        // showed a valid price read starting a dwell, then VisionKit's next
+        // callback arriving as a partial frame with ONLY the name block (no
+        // price) because didAdd delivers per-frame deltas, not the whole
+        // scene. That partial batch must NOT cancel the in-progress dwell —
+        // the good 175p read should still be accepted rather than timing out.
+        let scanner = VisionKitScanner()
+        scanner.dwellDuration = .milliseconds(50)
+        VisionKitScanner.scanTimeout = .milliseconds(500)
+        defer { VisionKitScanner.scanTimeout = .seconds(10) }
+
+        async let result = scanner.scanNextItem()
+        while !scanner.isPresenting {
+            await Task.yield()
+        }
+
+        // Frame 1: the full label — name block plus the price block (175p).
+        scanner.handleRecognizedText([
+            RecognizedLine(text: "MOSER ROTH Organic Bars 100g", boundingArea: 100, confidence: 0.9),
+            RecognizedLine(text: "175p", boundingArea: 400, confidence: 0.9),
+        ])
+
+        // Frame 2, before the dwell elapses: a partial frame that re-reads
+        // ONLY the name block (the price block didn't re-fire that frame).
+        // This must not discard the dwell already in progress on 175p.
+        try? await Task.sleep(for: .milliseconds(10))
+        scanner.handleRecognizedText([
+            RecognizedLine(text: "MOSER ROTH Organic Bars 100g", boundingArea: 100, confidence: 0.9),
+        ])
+
+        let scanResult = await result
+        #expect(scanResult == .captured(Capture(name: "MOSER ROTH Organic Bars 100g", priceInPence: 175, isConfident: true)))
+        #expect(scanner.isPresenting == false)
+    }
 }
