@@ -160,4 +160,45 @@ struct CaptureExtractorTests {
         #expect(capture?.priceInPence == 59)
         #expect(capture?.name == "Real Name")
     }
+
+    // MARK: - Bare decimal price with no currency marker (totally-716.8)
+
+    @Test
+    func bareTwoDecimalPriceParsesAsPounds() {
+        // The Aldi headline price often reads as a plain "1.09" because the "£"
+        // is a small superscript OCR puts on another line. Two decimals = money.
+        #expect(CaptureExtractor.parsePrice(from: "1.09") == 109)
+        #expect(CaptureExtractor.parsePrice(from: "£ 1.09") == 109)
+    }
+
+    @Test
+    func nonMoneyShapedNumbersAreNotPrices() {
+        // Single-decimal (a weight-ish value), bare integers, and the product
+        // code must NOT be read as prices.
+        #expect(CaptureExtractor.parsePrice(from: "1.9") == nil)
+        #expect(CaptureExtractor.parsePrice(from: "109") == nil)
+        #expect(CaptureExtractor.parsePrice(from: "340") == nil)
+    }
+
+    @Test
+    func realAldiPeanutButterLabelWithBareDecimalPriceExtracts() {
+        // GRANDESSA Peanut Butter: £1.09 headline reads as a bare "1.09", with
+        // the per-100g small print, weight and product code all present. The
+        // structural rules must pick 109 and ignore 340g/100g/42032/32.1p.
+        let lines = [
+            RecognizedLine(
+                text: "GRANDESSA\nPeanut Butter\nSmooth/Crunchy\n340g",
+                boundingArea: 26000, confidence: 0
+            ),
+            RecognizedLine(text: "1.09", boundingArea: 12000, confidence: 0),
+            RecognizedLine(text: "32.1p per 100g", boundingArea: 200, confidence: 0),
+            RecognizedLine(text: "42032", boundingArea: 600, confidence: 0),
+        ]
+
+        let capture = CaptureExtractor.extract(from: lines)
+
+        #expect(capture?.priceInPence == 109)
+        #expect(capture?.name == "GRANDESSA Peanut Butter Smooth/Crunchy")
+        #expect(capture?.isConfident == true)
+    }
 }
