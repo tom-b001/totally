@@ -112,7 +112,19 @@ struct HomeView: View {
                 titleVisibility: .visible
             ) {
                 Button("Clear basket", role: .destructive) {
-                    store.startNewTrip()
+                    // Clearing a full basket removes every List row at once.
+                    // Letting the implicit list `.animation` (and per-row
+                    // `.transition`) animate that simultaneous teardown +
+                    // header reflow on the main thread scales with basket size
+                    // and is the cause of the intermittent hang. Disable
+                    // animations for just this bulk mutation so the rows are
+                    // torn down in one non-animated pass; single-item
+                    // add/delete keep their animations.
+                    var transaction = Transaction()
+                    transaction.disablesAnimations = true
+                    withTransaction(transaction) {
+                        store.startNewTrip()
+                    }
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
