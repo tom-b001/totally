@@ -23,6 +23,27 @@ bd close <id>         # Complete work
 bd dolt push          # Push beads data to remote
 ```
 
+## Always push beads state after creating a bead
+
+**Whenever you create a bead (`bd create ...`), immediately push the beads
+state to the remote with `bd dolt push`.** A locally-created bead that is
+never pushed does not exist as far as the remote / CI is concerned — so when
+its PR later merges, the CI merge automation fails with `Issue <id> not
+found` because it is trying to close a bead the remote has never seen.
+
+This is a deliberate exception to the "beads sync happens on merge, not
+during the work" convention: the *close* still happens on merge, but the
+bead's *existence* must be on the remote as soon as it is created. Concretely:
+
+```bash
+bd create --type=task ... --parent <epic>   # create the bead
+bd dolt push                                # then push immediately
+```
+
+If you create several beads in one session, a single `bd dolt push` after the
+last one is fine — the rule is "don't end the session (or hand off a PR) with
+locally-created beads that were never pushed."
+
 ## Building & Testing
 
 The Xcode project is `Totally/Totally.xcodeproj`, scheme `Totally` (iOS 17+).
