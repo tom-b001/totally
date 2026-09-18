@@ -34,3 +34,14 @@ protocol Scanner {
     @MainActor
     func scanNextItem() async -> ScanResult
 }
+
+extension ScanResult {
+    /// The `Capture` to auto-add to the basket, or `nil` if this result
+    /// should not add anything (low-confidence captures, cancellation, or
+    /// failure). Low-confidence handling itself is out of scope here — see
+    /// docs/architecture/scanner.md — this only decides the auto-add path.
+    var captureToAutoAdd: Capture? {
+        guard case .captured(let capture) = self, capture.isConfident else { return nil }
+        return capture
+    }
+}
