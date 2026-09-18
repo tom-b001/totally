@@ -32,7 +32,12 @@ struct ScannerCameraView: UIViewControllerRepresentable {
         }
 
         let scanner = DataScannerViewController(
-            recognizedDataTypes: [.text()],
+            // Pin OCR to English (UK-only app). Without an explicit language,
+            // VisionKit auto-detects a locale and has been observed picking
+            // Romanian ("Locale not supported: ro"), which misreads "£" as
+            // "€"/"E" and mangles diacritics ("70% Dầrk"). Forcing en-GB/en-US
+            // makes it transcribe the real "£" and Latin letters correctly.
+            recognizedDataTypes: [.text(languages: ["en-GB", "en-US"])],
             qualityLevel: .accurate,
             recognizesMultipleItems: true,
             isHighFrameRateTrackingEnabled: false,
