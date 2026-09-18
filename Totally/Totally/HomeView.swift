@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var showBudgetEditor = false
     @State private var showNewTripConfirm = false
     @State private var budgetText = ""
+    @State private var scanner = VisionKitScanner()
 
     var body: some View {
         NavigationStack {
@@ -39,6 +40,13 @@ struct HomeView: View {
                 ManualEntryView { name, unitPriceInPence, quantity in
                     store.add(name: name, unitPriceInPence: unitPriceInPence, quantity: quantity)
                 }
+            }
+            .fullScreenCover(isPresented: Bindable(scanner).isPresenting) {
+                ScannerCameraView(
+                    onRecognizedText: { lines in scanner.handleRecognizedText(lines) },
+                    onCancel: { scanner.handleCancel() }
+                )
+                .ignoresSafeArea()
             }
             .alert("Set budget", isPresented: $showBudgetEditor) {
                 TextField("0.00", text: $budgetText)
@@ -195,16 +203,24 @@ struct HomeView: View {
 
     // MARK: - Bottom bar
 
+    private func scanNextItem() async {
+        switch await scanner.scanNextItem() {
+        case .captured(let capture):
+            store.add(name: capture.name, unitPriceInPence: capture.priceInPence)
+        case .cancelled, .failed:
+            break
+        }
+    }
+
     private var bottomBar: some View {
         HStack(spacing: 12) {
             Button {
-                // Camera scanning arrives in Milestone 2.
+                Task { await scanNextItem() }
             } label: {
                 Label("Scan next item", systemImage: "camera.viewfinder")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(true)
 
             Button {
                 showManualEntry = true
