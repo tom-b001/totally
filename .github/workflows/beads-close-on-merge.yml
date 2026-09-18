@@ -48,4 +48,5 @@ jobs:
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Stage 1 (dry run): this merge WOULD close bead \`$BEAD_ID\` and run \`bd dolt push\`. No beads state was changed yet."
 
-Stage 1 Action smoke test.
+# Stage 1 Action smoke test.
+
