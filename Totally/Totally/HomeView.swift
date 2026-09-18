@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var showBudgetEditor = false
     @State private var showNewTripConfirm = false
     @State private var budgetText = ""
+    @State private var confirmCapture: ConfirmPrefill?
     @State private var scanner = VisionKitScanner()
     private let captureFeedback: CaptureFeedbackPlaying = CaptureFeedback()
 
@@ -40,6 +41,11 @@ struct HomeView: View {
             .sheet(isPresented: $showManualEntry) {
                 ManualEntryView { name, unitPriceInPence, quantity in
                     store.add(name: name, unitPriceInPence: unitPriceInPence, quantity: quantity)
+                }
+            }
+            .sheet(item: $confirmCapture) { prefill in
+                ConfirmCardView(capture: prefill.capture) { name, unitPriceInPence in
+                    store.add(name: name, unitPriceInPence: unitPriceInPence)
                 }
             }
             .fullScreenCover(isPresented: Bindable(scanner).isPresenting) {
@@ -219,9 +225,13 @@ struct HomeView: View {
 
     private func scanNextItem() async {
         let result = await scanner.scanNextItem()
-        guard let capture = result.captureToAutoAdd else { return }
-        store.add(name: capture.name, unitPriceInPence: capture.priceInPence)
-        captureFeedback.playAutoAddFeedback()
+        if let capture = result.captureToAutoAdd {
+            store.add(name: capture.name, unitPriceInPence: capture.priceInPence)
+            captureFeedback.playAutoAddFeedback()
+        } else if let prefill = result.captureToConfirm {
+            // Uncertain or failed read: never auto-add — let the user check it.
+            confirmCapture = ConfirmPrefill(capture: prefill)
+        }
     }
 
     private var bottomBar: some View {
@@ -245,6 +255,14 @@ struct HomeView: View {
         .padding()
         .background(.bar)
     }
+}
+
+/// Identity wrapper so a `Capture` can drive a `.sheet(item:)` presentation
+/// without forcing `Identifiable` onto the domain type. Each uncertain scan
+/// gets a fresh id so re-scanning re-presents the confirm card.
+private struct ConfirmPrefill: Identifiable {
+    let id = UUID()
+    let capture: Capture
 }
 
 #Preview {
