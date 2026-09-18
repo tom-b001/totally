@@ -30,7 +30,6 @@ struct HomeView: View {
                 basketList
                 bottomBar
             }
-            .navigationTitle("Basket")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("New trip") { showNewTripConfirm = true }
@@ -138,7 +137,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
-        .background(.background)
+        .background(Color(.systemBackground))
     }
 
     private func labelledValue(_ label: String, _ value: String) -> some View {
@@ -188,6 +187,8 @@ struct HomeView: View {
                         summaryHeader
                         Divider()
                     }
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemBackground))
                     .listRowInsets(EdgeInsets())
                     .textCase(nil)
                 }
