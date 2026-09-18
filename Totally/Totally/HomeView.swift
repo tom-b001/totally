@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var showNewTripConfirm = false
     @State private var budgetText = ""
     @State private var confirmCapture: ConfirmPrefill?
+    @State private var editingItem: BasketItem?
     @State private var scanner = VisionKitScanner()
     private let captureFeedback: CaptureFeedbackPlaying = CaptureFeedback()
 
@@ -47,6 +48,22 @@ struct HomeView: View {
                 ConfirmCardView(capture: prefill.capture) { name, unitPriceInPence in
                     store.add(name: name, unitPriceInPence: unitPriceInPence)
                 }
+            }
+            .sheet(item: $editingItem) { item in
+                RowEditorView(
+                    item: item,
+                    onSave: { name, unitPriceInPence, quantity in
+                        store.edit(
+                            id: item.id,
+                            name: name,
+                            lineTotalInPence: unitPriceInPence * quantity,
+                            quantity: quantity
+                        )
+                    },
+                    onDelete: {
+                        store.remove(id: item.id)
+                    }
+                )
             }
             .fullScreenCover(isPresented: Bindable(scanner).isPresenting) {
                 ZStack(alignment: .topTrailing) {
@@ -201,6 +218,10 @@ struct HomeView: View {
                 .frame(minWidth: 64, alignment: .trailing)
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            editingItem = item
+        }
     }
 
     private var emptyState: some View {
@@ -215,6 +236,13 @@ struct HomeView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+            Button {
+                showManualEntry = true
+            } label: {
+                Label("Add your first item", systemImage: "plus")
+            }
+            .buttonStyle(.bordered)
+            .padding(.top, 4)
             Spacer()
         }
         .padding()
