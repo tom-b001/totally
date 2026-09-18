@@ -34,6 +34,7 @@ struct ScannerCameraView: UIViewControllerRepresentable {
         let scanner = DataScannerViewController(
             recognizedDataTypes: [.text()],
             qualityLevel: .accurate,
+            recognizesMultipleItems: true,
             isHighFrameRateTrackingEnabled: false,
             isPinchToZoomEnabled: true,
             isGuidanceEnabled: true,
