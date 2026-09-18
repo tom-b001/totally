@@ -108,3 +108,5 @@ jobs:
         run: |
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Failed to close bead \`$BEAD_ID\` / push beads state. Check the run: $RUN_URL — the bead is still open and must be closed manually."
+
+# retest totally-hv6
