@@ -27,8 +27,6 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                summaryHeader
-                Divider()
                 basketList
                 bottomBar
             }
@@ -140,6 +138,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
+        .background(.background)
     }
 
     private func labelledValue(_ label: String, _ value: String) -> some View {
@@ -168,16 +167,29 @@ struct HomeView: View {
     @ViewBuilder
     private var basketList: some View {
         if trip.items.isEmpty {
-            emptyState
+            VStack(spacing: 0) {
+                summaryHeader
+                Divider()
+                emptyState
+            }
         } else {
             List {
-                ForEach(trip.items) { item in
-                    basketRow(item)
-                }
-                .onDelete { indexSet in
-                    for index in indexSet {
-                        store.remove(id: trip.items[index].id)
+                Section {
+                    ForEach(trip.items) { item in
+                        basketRow(item)
                     }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            store.remove(id: trip.items[index].id)
+                        }
+                    }
+                } header: {
+                    VStack(spacing: 0) {
+                        summaryHeader
+                        Divider()
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .textCase(nil)
                 }
             }
             .listStyle(.plain)
