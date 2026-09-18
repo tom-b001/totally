@@ -6,10 +6,9 @@
 //  `scanNextItem()` suspends until the camera reports recognised text,
 //  cancellation, or failure, and drives whether the camera sheet is shown.
 //
-//  Turning recognised text lines into a real `Capture` (price/name
-//  extraction) is out of scope here — see totally-716.2.2. For now the first
-//  batch of recognised text resolves a low-confidence stub `Capture` so the
-//  seam is exercised end-to-end.
+//  Turning recognised text lines into a `Capture` is delegated to
+//  `CaptureExtractor`, which is pure/testable and knows nothing about
+//  VisionKit.
 //
 
 import Foundation
@@ -30,12 +29,8 @@ final class VisionKitScanner: Scanner {
     }
 
     /// Called by the camera view once it has recognised some text.
-    func handleRecognizedText(_ lines: [String]) {
-        let capture = Capture(
-            name: lines.first ?? "",
-            priceInPence: 0,
-            isConfident: false
-        )
+    func handleRecognizedText(_ lines: [RecognizedLine]) {
+        guard let capture = CaptureExtractor.extract(from: lines) else { return }
         resolve(.captured(capture))
     }
 
