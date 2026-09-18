@@ -36,8 +36,13 @@ struct HomeView: View {
                 }
             }
             .sheet(isPresented: $showManualEntry) {
-                ManualEntryView { name, unitPriceInPence, quantity in
-                    store.add(name: name, unitPriceInPence: unitPriceInPence, quantity: quantity)
+                ManualEntryView { outcome in
+                    switch outcome {
+                    case let .item(name, unitPriceInPence, quantity):
+                        store.add(name: name, unitPriceInPence: unitPriceInPence, quantity: quantity)
+                    case let .offer(name, offerTotalInPence, quantity):
+                        store.addOffer(name: name, offerTotalInPence: offerTotalInPence, quantity: quantity)
+                    }
                 }
             }
             .alert("Set budget", isPresented: $showBudgetEditor) {

@@ -11,6 +11,7 @@
 		7E8C1DCAB21B4A63AAA4CC01 /* PersistedTrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 821E77D1BE94417299EF489A /* PersistedTrip.swift */; };
 		A806D9D0FFBA449189342687 /* TripStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAD05C999394E9BB0D18D40 /* TripStore.swift */; };
 		AE4464155B4747EFBCAEC3FA /* TripStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A8ABDFD66D47CE85B2584A /* TripStoreTests.swift */; };
+		92BC86FD33ED44C6878DF045 /* ManualEntryDecisionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA976BFE3704883B7EB6A97 /* ManualEntryDecisionTests.swift */; };
 		67AC568F2C064A66923990E5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67AC568F2C064A66923990E4 /* HomeView.swift */; };
 		A1B2C3D4E5F60718293A4B5D /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* Money.swift */; };
 		A1B2C3D4E5F60718293A4B5F /* ManualEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5E /* ManualEntryView.swift */; };
@@ -36,6 +37,7 @@
 		821E77D1BE94417299EF489A /* PersistedTrip.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PersistedTrip.swift; sourceTree = "<group>"; };
 		FDAD05C999394E9BB0D18D40 /* TripStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TripStore.swift; sourceTree = "<group>"; };
 		25A8ABDFD66D47CE85B2584A /* TripStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TripStoreTests.swift; sourceTree = "<group>"; };
+		DAA976BFE3704883B7EB6A97 /* ManualEntryDecisionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ManualEntryDecisionTests.swift; sourceTree = "<group>"; };
 		33FD7A345F4B7691B65CD43F /* TripTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TripTests.swift; sourceTree = "<group>"; };
 		3DB8C17A9BA2434199F88A67 /* Totally.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Totally.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F2E614FB133B5BD60CBA11D /* Trip.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
@@ -90,6 +92,7 @@
 			children = (
 				33FD7A345F4B7691B65CD43F /* TripTests.swift */,
 				25A8ABDFD66D47CE85B2584A /* TripStoreTests.swift */,
+				DAA976BFE3704883B7EB6A97 /* ManualEntryDecisionTests.swift */,
 			);
 			name = TotallyTests;
 			path = TotallyTests;
@@ -260,6 +263,7 @@
 			files = (
 				D7237ECFBADD5EB54438E264 /* TripTests.swift in Sources */,
 				AE4464155B4747EFBCAEC3FA /* TripStoreTests.swift in Sources */,
+				92BC86FD33ED44C6878DF045 /* ManualEntryDecisionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
