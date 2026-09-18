@@ -40,7 +40,7 @@ The app is small; keep seams few. Three areas:
 ### 1. Scanner (`docs/architecture/scanner.md`)
 Owns everything about turning a camera view of a shelf label into a
 `Capture(name, priceInPence, confidence)`. Hides Vision/VisionKit, price
-parsing ("biggest number", pence vs pounds), and duplicate suppression behind a
+parsing ("biggest number", pence vs pounds), and dwell/steadiness gating behind a
 small interface. **This is the only area that touches the camera or OCR.**
 
 ### 2. Basket & Trip domain (`docs/architecture/basket-domain.md`)

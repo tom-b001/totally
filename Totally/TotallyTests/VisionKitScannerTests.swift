@@ -88,17 +88,27 @@ struct VisionKitScannerTests {
     }
 
     @Test
-    func duplicateReadWithinWindowIsSuppressed() async {
-        // Holding the camera on one label, or re-reading it within a few
-        // seconds, must add the item only once: a matching re-read is
-        // ignored rather than resolving a second `.captured`.
+    func reScanningSameLabelInSubsequentSessionResolvesPromptly() async {
+        // Regression for totally-716.11: cross-session duplicate suppression
+        // used to swallow a re-read of the same label in a *subsequent*
+        // scanNextItem() call, returning from acceptDwelledCandidate without
+        // resuming the continuation — so a deliberate re-open pointed at the
+        // same label hung until the 10s timeout. A new user-initiated scan is
+        // an explicit "add this" signal, so it must resolve .captured promptly
+        // rather than being suppressed.
         let scanner = VisionKitScanner()
         scanner.dwellDuration = .milliseconds(1)
+        // A short timeout so this test fails fast (rather than in 10s) if the
+        // re-scan ever regresses to hanging instead of resolving.
+        VisionKitScanner.scanTimeout = .milliseconds(200)
+        defer { VisionKitScanner.scanTimeout = .seconds(10) }
+
         let lines = [
             RecognizedLine(text: "Oat Milk 1L", boundingArea: 100, confidence: 0.9),
             RecognizedLine(text: "89p", boundingArea: 400, confidence: 0.9),
         ]
 
+        // First scan captures the label.
         async let firstResult = scanner.scanNextItem()
         while !scanner.isPresenting {
             await Task.yield()
@@ -107,24 +117,20 @@ struct VisionKitScannerTests {
         let first = await firstResult
         #expect(first == .captured(Capture(name: "Oat Milk 1L", priceInPence: 89, isConfident: true)))
 
+        // A subsequent scan on the SAME scanner instance, re-reading the SAME
+        // label immediately: must resolve .captured promptly, not hang.
         async let secondResult = scanner.scanNextItem()
         while !scanner.isPresenting {
             await Task.yield()
         }
-        // Same label, re-read immediately: should be suppressed, not re-added.
         scanner.handleRecognizedText(lines)
-        // Give the dwell timer (and an incorrect resolution) a chance to
-        // fire before we assert the scan is still waiting.
-        try? await Task.sleep(for: .milliseconds(20))
-        #expect(scanner.isPresenting == true, "a suppressed duplicate must not resolve the scan")
-
-        scanner.handleCancel()
         let second = await secondResult
-        #expect(second == .cancelled)
+        #expect(second == .captured(Capture(name: "Oat Milk 1L", priceInPence: 89, isConfident: true)))
+        #expect(scanner.isPresenting == false)
     }
 
     @Test
-    func differentLabelRightAfterIsNotSuppressed() async {
+    func differentLabelRightAfterIsCaptured() async {
         let scanner = VisionKitScanner()
         scanner.dwellDuration = .milliseconds(1)
 
@@ -149,37 +155,6 @@ struct VisionKitScannerTests {
 
         let second = await secondResult
         #expect(second == .captured(Capture(name: "Bananas", priceInPence: 59, isConfident: true)))
-    }
-
-    @Test
-    func duplicateAfterWindowExpiresIsCapturedAgain() async {
-        let scanner = VisionKitScanner()
-        scanner.dwellDuration = .milliseconds(1)
-        scanner.duplicateSuppressionWindow = .milliseconds(20)
-
-        let lines = [
-            RecognizedLine(text: "Oat Milk 1L", boundingArea: 100, confidence: 0.9),
-            RecognizedLine(text: "89p", boundingArea: 400, confidence: 0.9),
-        ]
-
-        async let firstResult = scanner.scanNextItem()
-        while !scanner.isPresenting {
-            await Task.yield()
-        }
-        scanner.handleRecognizedText(lines)
-        _ = await firstResult
-
-        try? await Task.sleep(for: .milliseconds(50))
-
-        async let secondResult = scanner.scanNextItem()
-        while !scanner.isPresenting {
-            await Task.yield()
-        }
-        // Same label, but the suppression window has elapsed: captures again.
-        scanner.handleRecognizedText(lines)
-
-        let second = await secondResult
-        #expect(second == .captured(Capture(name: "Oat Milk 1L", priceInPence: 89, isConfident: true)))
     }
 
     @Test
