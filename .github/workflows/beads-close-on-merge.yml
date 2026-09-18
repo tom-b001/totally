@@ -95,3 +95,5 @@ jobs:
         run: |
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
             "Closed bead \`$BEAD_ID\` and pushed beads state to \`refs/dolt/data\`."
+
+# CI smoke test for totally-hv6
