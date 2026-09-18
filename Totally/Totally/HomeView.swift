@@ -22,6 +22,10 @@ struct HomeView: View {
     @State private var confirmCapture: ConfirmPrefill?
     @State private var editingItem: BasketItem?
     @State private var scanner = VisionKitScanner()
+    /// Id of the most recently added item. Drives scroll-to-view and the
+    /// brief highlight flash so both the manual-add and scan paths confirm
+    /// which row just landed. Cleared after the flash fades.
+    @State private var lastAddedItemID: UUID?
     private let captureFeedback: CaptureFeedbackPlaying = CaptureFeedback()
 
     var body: some View {
@@ -38,12 +42,14 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showManualEntry) {
                 ManualEntryView { name, unitPriceInPence, quantity in
-                    store.add(name: name, unitPriceInPence: unitPriceInPence, quantity: quantity)
+                    let id = store.add(name: name, unitPriceInPence: unitPriceInPence, quantity: quantity)
+                    confirmAdd(id)
                 }
             }
             .sheet(item: $confirmCapture) { prefill in
                 ConfirmCardView(capture: prefill.capture) { name, unitPriceInPence in
-                    store.add(name: name, unitPriceInPence: unitPriceInPence)
+                    let id = store.add(name: name, unitPriceInPence: unitPriceInPence)
+                    confirmAdd(id)
                 }
             }
             .sheet(item: $editingItem) { item in
@@ -182,17 +188,28 @@ struct HomeView: View {
             VStack(spacing: 0) {
                 summaryHeader
                 Divider()
-                List {
-                    ForEach(trip.items) { item in
-                        basketRow(item)
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(trip.items) { item in
+                            basketRow(item)
+                                .id(item.id)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+                        .onDelete { indexSet in
+                            for index in indexSet {
+                                store.remove(id: trip.items[index].id)
+                            }
+                        }
                     }
-                    .onDelete { indexSet in
-                        for index in indexSet {
-                            store.remove(id: trip.items[index].id)
+                    .listStyle(.plain)
+                    .animation(.default, value: trip.items.map(\.id))
+                    .onChange(of: lastAddedItemID) { _, newID in
+                        guard let newID else { return }
+                        withAnimation {
+                            proxy.scrollTo(newID, anchor: .bottom)
                         }
                     }
                 }
-                .listStyle(.plain)
             }
         }
     }
@@ -234,6 +251,10 @@ struct HomeView: View {
         }
         .padding(.vertical, 4)
         .frame(minHeight: 52)
+        .listRowBackground(
+            (lastAddedItemID == item.id ? Color.green.opacity(0.25) : Color.clear)
+                .animation(.easeInOut(duration: 0.4), value: lastAddedItemID)
+        )
         .contentShape(Rectangle())
         .onTapGesture {
             editingItem = item
@@ -270,11 +291,33 @@ struct HomeView: View {
     private func scanNextItem() async {
         let result = await scanner.scanNextItem()
         if let capture = result.captureToAutoAdd {
-            store.add(name: capture.name, unitPriceInPence: capture.priceInPence)
-            captureFeedback.playAutoAddFeedback()
+            let id = store.add(name: capture.name, unitPriceInPence: capture.priceInPence)
+            confirmAdd(id)
         } else if let prefill = result.captureToConfirm {
             // Uncertain or failed read: never auto-add — let the user check it.
             confirmCapture = ConfirmPrefill(capture: prefill)
+        }
+    }
+
+    /// Shared post-add confirmation for every add site (manual full entry,
+    /// manual quick add / confirm card, and confident scan): fire the success
+    /// haptic and mark the new row for scroll-to-view + highlight flash. The
+    /// flash clears itself after a short delay so the same row can be added
+    /// and re-flash later.
+    private func confirmAdd(_ id: UUID) {
+        captureFeedback.playAutoAddFeedback()
+        withAnimation(.easeInOut(duration: 0.25)) {
+            lastAddedItemID = id
+        }
+        Task {
+            try? await Task.sleep(for: .seconds(0.9))
+            await MainActor.run {
+                if lastAddedItemID == id {
+                    withAnimation(.easeOut(duration: 0.4)) {
+                        lastAddedItemID = nil
+                    }
+                }
+            }
         }
     }
 
