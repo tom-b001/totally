@@ -26,6 +26,12 @@ struct HomeView: View {
     /// brief highlight flash so both the manual-add and scan paths confirm
     /// which row just landed. Cleared after the flash fades.
     @State private var lastAddedItemID: UUID?
+    /// The item whose quantity is currently being typed, plus the in-progress
+    /// text buffer. The field is only bound while this matches the row's id so
+    /// each row shows its own committed quantity otherwise.
+    @State private var editingQuantityItemID: UUID?
+    @State private var quantityText = ""
+    @FocusState private var quantityFieldFocused: Bool
     private let captureFeedback: CaptureFeedbackPlaying = CaptureFeedback()
 
     var body: some View {
@@ -234,9 +240,7 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: "minus.circle")
                 }
-                Text("\(item.quantity)")
-                    .font(.body.monospacedDigit())
-                    .frame(minWidth: 20)
+                quantityField(item)
                 Button {
                     store.setQuantity(item.quantity + 1, for: item.id)
                 } label: {
@@ -259,6 +263,50 @@ struct HomeView: View {
         .onTapGesture {
             editingItem = item
         }
+    }
+
+    /// Tappable quantity: shows the committed quantity, but while this row is
+    /// the one being edited it becomes a numeric `TextField` the user can type
+    /// into. Commits via `store.setQuantity`, clamped to >= 1. An empty or
+    /// invalid entry reverts to the previous quantity rather than deleting the
+    /// row (which `setQuantity(0)`/negative would otherwise do).
+    private func quantityField(_ item: BasketItem) -> some View {
+        let isEditing = editingQuantityItemID == item.id
+        return TextField(
+            "",
+            text: isEditing ? $quantityText : .constant("\(item.quantity)")
+        )
+        .keyboardType(.numberPad)
+        .multilineTextAlignment(.center)
+        .font(.body.monospacedDigit())
+        .frame(minWidth: 32)
+        .focused($quantityFieldFocused)
+        .disabled(!isEditing)
+        .onTapGesture {
+            editingQuantityItemID = item.id
+            quantityText = "\(item.quantity)"
+            quantityFieldFocused = true
+        }
+        .onChange(of: quantityFieldFocused) { _, focused in
+            // Commit when focus leaves the field (tap elsewhere / dismiss).
+            if !focused, isEditing {
+                commitQuantity(for: item)
+            }
+        }
+        .onSubmit { commitQuantity(for: item) }
+    }
+
+    private func commitQuantity(for item: BasketItem) {
+        defer {
+            editingQuantityItemID = nil
+            quantityFieldFocused = false
+        }
+        let trimmed = quantityText.trimmingCharacters(in: .whitespaces)
+        guard let value = Int(trimmed), value >= 1 else {
+            // Empty/invalid/less-than-one: keep the previous quantity.
+            return
+        }
+        store.setQuantity(value, for: item.id)
     }
 
     private var emptyState: some View {
@@ -328,16 +376,20 @@ struct HomeView: View {
             } label: {
                 Label("Scan next item", systemImage: "camera.viewfinder")
                     .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.large)
 
             Button {
                 showManualEntry = true
             } label: {
                 Label("Add manually", systemImage: "plus")
                     .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
             }
             .buttonStyle(.bordered)
+            .controlSize(.large)
         }
         .padding()
         .background(.bar)
