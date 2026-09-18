@@ -74,9 +74,10 @@ struct ScannerCameraView: UIViewControllerRepresentable {
 
         func dataScanner(
             _ dataScanner: DataScannerViewController,
-            didAddItems addedItems: [RecognizedItem]
+            didAdd addedItems: [RecognizedItem],
+            allItems: [RecognizedItem]
         ) {
-            logger.debug("didAddItems: \(addedItems.count) item(s)")
+            logger.debug("didAdd: \(addedItems.count) item(s), allItems: \(allItems.count)")
             let lines: [RecognizedLine] = addedItems.compactMap { item in
                 guard case .text(let text) = item else { return nil }
                 let confidence = text.observation.topCandidates(1).first?.confidence ?? 0

@@ -37,6 +37,7 @@ final class VisionKitScanner: Scanner {
             self.timeoutTask = Task { [weak self] in
                 try? await Task.sleep(for: Self.scanTimeout)
                 guard !Task.isCancelled else { return }
+                logger.debug("scan timed out after \(String(describing: Self.scanTimeout), privacy: .public) with no plausible capture")
                 self?.resolve(.failed(reason: "No confident read within \(Self.scanTimeout)"))
             }
         }
