@@ -72,16 +72,15 @@ jobs:
           sudo install -m 0755 "$BD_BIN" /usr/local/bin/bd
           bd version
 
-      # Hydrate the Dolt DB from refs/dolt/data. The git checkout contains the
-      # committed .beads/ files (config, hooks, metadata) but NOT the embedded
-      # Dolt data, which lives only in refs/dolt/data. So we create a local DB
-      # (bd init), point it at the remote, then pull the real state into it.
+      # Hydrate the Dolt DB. The git checkout has the committed .beads/ config
+      # but NOT the embedded Dolt data (that lives in refs/dolt/data). `bd init`
+      # auto-detects the git origin as the Dolt remote and pulls the real state
+      # into a fresh local DB — no explicit remote-add/pull needed (and doing so
+      # causes an 'events' merge conflict against the freshly-initialised DB).
       - name: Hydrate beads Dolt state
         if: steps.bead.outputs.found == 'true'
         run: |
           bd init --prefix totally
-          bd dolt remote add origin "git+https://github.com/${GITHUB_REPOSITORY}.git" || true
-          bd dolt pull
           bd show "${{ steps.bead.outputs.id }}" >/dev/null
 
       - name: Close bead and push
