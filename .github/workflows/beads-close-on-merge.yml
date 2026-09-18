@@ -90,7 +90,10 @@ jobs:
           BEAD_ID: ${{ steps.bead.outputs.id }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
-          bd close "$BEAD_ID" --reason="Merged via PR: $PR_URL"
+          # --force because the bead is typically claimed by the human worker
+          # (a different actor than this "beads-bot" runner). The merge itself is
+          # the authoritative "done" signal, so we override the assignee guard.
+          bd close "$BEAD_ID" --reason="Merged via PR: $PR_URL" --force
           bd dolt push
 
       - name: Comment success
