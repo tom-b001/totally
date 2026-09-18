@@ -189,6 +189,8 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
                     .font(.body)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
                 Text("\(Money.string(fromPence: item.unitPriceInPence)) each")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -218,6 +220,7 @@ struct HomeView: View {
                 .frame(minWidth: 64, alignment: .trailing)
         }
         .padding(.vertical, 4)
+        .frame(minHeight: 52)
         .contentShape(Rectangle())
         .onTapGesture {
             editingItem = item
