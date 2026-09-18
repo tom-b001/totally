@@ -31,6 +31,13 @@ final class VisionKitScanner: Scanner {
     /// shared value. See docs/architecture/scanner.md.
     var duplicateSuppressionWindow: Duration = .seconds(3)
 
+    /// How long recognised text must be held steady/pointed at before it's
+    /// accepted as a `Capture`, so the camera doesn't grab transient/
+    /// incidental text the instant it opens or while still moving toward
+    /// the shelf label. Instance (not static) so concurrently-running tests
+    /// can't race on a shared value. See docs/architecture/scanner.md.
+    var dwellDuration: Duration = .milliseconds(200)
+
     var isPresenting = false
 
     private var continuation: CheckedContinuation<ScanResult, Never>?
@@ -38,6 +45,8 @@ final class VisionKitScanner: Scanner {
     private let clock = ContinuousClock()
     private var lastCapture: Capture?
     private var lastCaptureAt: ContinuousClock.Instant?
+    private var dwellCandidate: Capture?
+    private var dwellTask: Task<Void, Never>?
 
     func scanNextItem() async -> ScanResult {
         await withCheckedContinuation { continuation in
@@ -64,8 +73,38 @@ final class VisionKitScanner: Scanner {
 
         guard let capture = CaptureExtractor.extract(from: lines) else {
             logger.debug("extract(from:) found no plausible price in this batch")
+            // Losing the plausible read (camera panned away, text vanished)
+            // resets any in-progress dwell so it doesn't get accepted later
+            // just because the same text briefly reappears.
+            dwellCandidate = nil
+            dwellTask?.cancel()
+            dwellTask = nil
             return
         }
+
+        guard capture != dwellCandidate else {
+            // Still dwelling on the same candidate; the scheduled dwell task
+            // will accept it once `dwellDuration` has elapsed.
+            return
+        }
+
+        logger.debug("starting dwell for \"\(capture.name, privacy: .public)\" at \(capture.priceInPence)p")
+        dwellCandidate = capture
+        dwellTask?.cancel()
+        dwellTask = Task { [weak self, dwellDuration] in
+            try? await Task.sleep(for: dwellDuration)
+            guard !Task.isCancelled else { return }
+            self?.acceptDwelledCandidate(capture)
+        }
+    }
+
+    /// Called once `capture` has been held steady for `dwellDuration`.
+    /// Still guards against the candidate having changed (or the scan
+    /// already resolving) in the meantime.
+    private func acceptDwelledCandidate(_ capture: Capture) {
+        guard dwellCandidate == capture else { return }
+        dwellCandidate = nil
+        dwellTask = nil
 
         if isDuplicate(of: capture) {
             logger.debug("suppressing duplicate re-read of \"\(capture.name, privacy: .public)\" at \(capture.priceInPence)p")
@@ -99,6 +138,9 @@ final class VisionKitScanner: Scanner {
         guard continuation != nil else { return }
         timeoutTask?.cancel()
         timeoutTask = nil
+        dwellTask?.cancel()
+        dwellTask = nil
+        dwellCandidate = nil
         isPresenting = false
         continuation?.resume(returning: result)
         continuation = nil
