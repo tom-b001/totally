@@ -23,6 +23,36 @@ bd close <id>         # Complete work
 bd dolt push          # Push beads data to remote
 ```
 
+## Building & Testing
+
+The Xcode project is `Totally/Totally.xcodeproj`, scheme `Totally` (iOS 17+).
+
+**Do NOT run a full build + test before picking up a new bead.** Selecting the
+next bead is a read-only planning step (`bd ready` / `bd show`) — it does not
+require compiling or testing the app. Only build and test as part of *verifying
+the bead you are actually implementing*, at the point where the change is done.
+Running the whole suite just to choose work wastes minutes per bead.
+
+**Reuse the already-running simulator; do not boot a new one.** If a simulator
+is already booted, target it by name or id instead of spinning up a fresh
+device:
+
+```bash
+# See what's already booted (use this device):
+xcrun simctl list devices booted
+
+# Test against the currently-booted simulator (do NOT launch another):
+xcodebuild test \
+  -project Totally/Totally.xcodeproj \
+  -scheme Totally \
+  -destination "platform=iOS Simulator,id=<booted-device-udid>"
+```
+
+Use the UDID from `xcrun simctl list devices booted`. Only if nothing is booted
+should you pick and boot a simulator. Never use a bare `-destination
+'generic/platform=iOS Simulator'` or a fixed device name that forces a new
+device to launch when one is already running.
+
 ## Non-Interactive Shell Commands
 
 **ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.
