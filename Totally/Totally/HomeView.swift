@@ -117,9 +117,11 @@ struct HomeView: View {
                 .font(.system(size: 44, weight: .bold, design: .rounded))
                 .foregroundStyle(trip.isOverBudget ? Color.red : Color.primary)
                 .contentTransition(.numericText())
-            Text(remainingSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(trip.isOverBudget ? Color.red : Color.secondary)
+            if let subtitle = remainingSubtitle {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(trip.isOverBudget ? Color.red : Color.secondary)
+            }
 
             HStack(spacing: 24) {
                 labelledValue("Total", Money.string(fromPence: trip.totalInPence))
@@ -157,8 +159,8 @@ struct HomeView: View {
         return "\(Money.string(fromPence: trip.remainingInPence)) left"
     }
 
-    private var remainingSubtitle: String {
-        trip.isOverBudget ? "You're over budget" : "remaining of your budget"
+    private var remainingSubtitle: String? {
+        trip.isOverBudget ? "You're over budget" : nil
     }
 
     // MARK: - Basket list
