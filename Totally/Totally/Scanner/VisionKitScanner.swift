@@ -36,7 +36,7 @@ final class VisionKitScanner: Scanner {
     /// incidental text the instant it opens or while still moving toward
     /// the shelf label. Instance (not static) so concurrently-running tests
     /// can't race on a shared value. See docs/architecture/scanner.md.
-    var dwellDuration: Duration = .milliseconds(400)
+    var dwellDuration: Duration = .milliseconds(200)
 
     var isPresenting = false
 
