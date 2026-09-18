@@ -3,9 +3,10 @@
 //  Totally
 //
 //  Thin SwiftUI wrapper around VisionKit's `DataScannerViewController`. Turns
-//  live camera text recognition into recognised text tokens; does not
-//  interpret them (no price/name extraction here — that's `VisionKitScanner`
-//  and, longer-term, totally-716.2.2). See docs/architecture/scanner.md.
+//  live camera text recognition into `RecognizedLine` values (text +
+//  bounding box area + OCR confidence); does not interpret them (no
+//  price/name extraction here — that's `CaptureExtractor`, via
+//  `VisionKitScanner`). See docs/architecture/scanner.md.
 //
 
 import SwiftUI
@@ -14,7 +15,7 @@ import VisionKit
 /// Callback-driven wrapper: reports each batch of recognised text lines as
 /// they're read, and reports if the user cancels.
 struct ScannerCameraView: UIViewControllerRepresentable {
-    var onRecognizedText: (_ lines: [String]) -> Void
+    var onRecognizedText: (_ lines: [RecognizedLine]) -> Void
     var onCancel: () -> Void
 
     func makeUIViewController(context: Context) -> UIViewController {
@@ -47,9 +48,9 @@ struct ScannerCameraView: UIViewControllerRepresentable {
     }
 
     final class Coordinator: NSObject, DataScannerViewControllerDelegate {
-        private let onRecognizedText: (_ lines: [String]) -> Void
+        private let onRecognizedText: (_ lines: [RecognizedLine]) -> Void
 
-        init(onRecognizedText: @escaping (_ lines: [String]) -> Void) {
+        init(onRecognizedText: @escaping (_ lines: [RecognizedLine]) -> Void) {
             self.onRecognizedText = onRecognizedText
         }
 
@@ -57,12 +58,31 @@ struct ScannerCameraView: UIViewControllerRepresentable {
             _ dataScanner: DataScannerViewController,
             didAddItems addedItems: [RecognizedItem]
         ) {
-            let lines: [String] = addedItems.compactMap { item in
+            let lines: [RecognizedLine] = addedItems.compactMap { item in
                 guard case .text(let text) = item else { return nil }
-                return text.transcript
+                let confidence = text.observation.topCandidates(1).first?.confidence ?? 0
+                return RecognizedLine(
+                    text: text.transcript,
+                    boundingArea: Self.area(of: text.bounds),
+                    confidence: confidence
+                )
             }
             guard !lines.isEmpty else { return }
             onRecognizedText(lines)
+        }
+
+        /// Shoelace-formula area of the bounds quad. `RecognizedItem.Bounds`
+        /// is four corner points, not a `CGRect`, so this can't be
+        /// `width * height`.
+        private static func area(of bounds: RecognizedItem.Bounds) -> CGFloat {
+            let points = [bounds.topLeft, bounds.topRight, bounds.bottomRight, bounds.bottomLeft]
+            var sum: CGFloat = 0
+            for i in 0..<points.count {
+                let current = points[i]
+                let next = points[(i + 1) % points.count]
+                sum += (current.x * next.y) - (next.x * current.y)
+            }
+            return abs(sum) / 2
         }
     }
 }

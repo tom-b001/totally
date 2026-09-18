@@ -27,6 +27,17 @@ bd dolt push          # Push beads data to remote
 
 The Xcode project is `Totally/Totally.xcodeproj`, scheme `Totally` (iOS 17+).
 
+**`xcode-select` on this machine may point at CommandLineTools instead of
+Xcode.app**, which makes bare `xcrun`/`xcodebuild` fail with `SDK
+"iphonesimulator" cannot be located`. Prefix build/test commands with
+`DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` rather than running
+`sudo xcode-select -s` (avoid changing global machine state):
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild test \
+  -project Totally/Totally.xcodeproj -scheme Totally \
+  -destination "platform=iOS Simulator,id=<booted-device-udid>"
+```
+
 **Do NOT run a full build + test before picking up a new bead.** Selecting the
 next bead is a read-only planning step (`bd ready` / `bd show`) — it does not
 require compiling or testing the app. Only build and test as part of *verifying

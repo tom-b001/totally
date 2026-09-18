@@ -3,7 +3,8 @@
 //  TotallyTests
 //
 //  Unit tests for the testable, non-camera parts of the scanner seam: the
-//  async continuation lifecycle and the (stub) text-to-Capture mapping.
+//  async continuation lifecycle and its delegation to `CaptureExtractor`.
+//  See CaptureExtractorTests for the price/name parsing logic itself.
 //  Live camera behaviour can't be exercised outside a real device, so that
 //  part is left to manual verification.
 //
@@ -25,10 +26,13 @@ struct VisionKitScannerTests {
             await Task.yield()
         }
 
-        scanner.handleRecognizedText(["Oat Milk 1L", "89p"])
+        scanner.handleRecognizedText([
+            RecognizedLine(text: "Oat Milk 1L", boundingArea: 100, confidence: 0.9),
+            RecognizedLine(text: "89p", boundingArea: 400, confidence: 0.9),
+        ])
 
         let scanResult = await result
-        #expect(scanResult == .captured(Capture(name: "Oat Milk 1L", priceInPence: 0, isConfident: false)))
+        #expect(scanResult == .captured(Capture(name: "Oat Milk 1L", priceInPence: 89, isConfident: true)))
         #expect(scanner.isPresenting == false)
     }
 
