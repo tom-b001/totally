@@ -70,6 +70,26 @@ struct TripStoreTests {
         #expect(secondStore.trip.items.first?.lineTotalInPence == 99 * 3)
     }
 
+    @Test func editAndRemovePersistImmediately() throws {
+        let url = temporaryStoreURL()
+
+        let firstLaunch = try makeContainer(at: url)
+        let firstStore = TripStore(modelContext: firstLaunch.mainContext)
+        let milkId = firstStore.add(name: "Milk", unitPriceInPence: 120, quantity: 1)
+        let breadId = firstStore.add(name: "Bread", unitPriceInPence: 99, quantity: 1)
+
+        firstStore.edit(id: milkId, name: "Oat Milk", lineTotalInPence: 250, quantity: 2)
+        firstStore.remove(id: breadId)
+
+        let secondLaunch = try makeContainer(at: url)
+        let secondStore = TripStore(modelContext: secondLaunch.mainContext)
+
+        #expect(secondStore.trip.items.count == 1)
+        #expect(secondStore.trip.items.first?.name == "Oat Milk")
+        #expect(secondStore.trip.items.first?.lineTotalInPence == 250)
+        #expect(secondStore.trip.items.first?.quantity == 2)
+    }
+
     @Test func newTripReplacesPersistedBasketButCanKeepBudget() throws {
         let url = temporaryStoreURL()
 
