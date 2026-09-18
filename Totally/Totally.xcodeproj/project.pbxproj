@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		035A75BE439A5133B6BF5FA9 /* BasketItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E5CE2DC632555539E6FAB3 /* BasketItem.swift */; };
+		7E8C1DCAB21B4A63AAA4CC01 /* PersistedTrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 821E77D1BE94417299EF489A /* PersistedTrip.swift */; };
+		A806D9D0FFBA449189342687 /* TripStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAD05C999394E9BB0D18D40 /* TripStore.swift */; };
+		AE4464155B4747EFBCAEC3FA /* TripStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A8ABDFD66D47CE85B2584A /* TripStoreTests.swift */; };
 		67AC568F2C064A66923990E5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67AC568F2C064A66923990E4 /* HomeView.swift */; };
 		A1B2C3D4E5F60718293A4B5D /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* Money.swift */; };
 		A1B2C3D4E5F60718293A4B5F /* ManualEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5E /* ManualEntryView.swift */; };
@@ -30,6 +33,9 @@
 
 /* Begin PBXFileReference section */
 		32E5CE2DC632555539E6FAB3 /* BasketItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasketItem.swift; sourceTree = "<group>"; };
+		821E77D1BE94417299EF489A /* PersistedTrip.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PersistedTrip.swift; sourceTree = "<group>"; };
+		FDAD05C999394E9BB0D18D40 /* TripStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TripStore.swift; sourceTree = "<group>"; };
+		25A8ABDFD66D47CE85B2584A /* TripStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TripStoreTests.swift; sourceTree = "<group>"; };
 		33FD7A345F4B7691B65CD43F /* TripTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TripTests.swift; sourceTree = "<group>"; };
 		3DB8C17A9BA2434199F88A67 /* Totally.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Totally.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F2E614FB133B5BD60CBA11D /* Trip.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
@@ -83,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				33FD7A345F4B7691B65CD43F /* TripTests.swift */,
+				25A8ABDFD66D47CE85B2584A /* TripStoreTests.swift */,
 			);
 			name = TotallyTests;
 			path = TotallyTests;
@@ -106,6 +113,7 @@
 				EFA416176A1845E2A2771EF8 /* Assets.xcassets */,
 				66B1FC1468F64DBFA7238A25 /* Info.plist */,
 				CA8C2D851CF0A1CC85CD3E8B /* Domain */,
+				9204191A5B1A4D32862C8761 /* Persistence */,
 			);
 			path = Totally;
 			sourceTree = "<group>";
@@ -128,6 +136,16 @@
 			);
 			name = Domain;
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		9204191A5B1A4D32862C8761 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				821E77D1BE94417299EF489A /* PersistedTrip.swift */,
+				FDAD05C999394E9BB0D18D40 /* TripStore.swift */,
+			);
+			name = Persistence;
+			path = Persistence;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -231,6 +249,8 @@
 				A1B2C3D4E5F60718293A4B5D /* Money.swift in Sources */,
 				035A75BE439A5133B6BF5FA9 /* BasketItem.swift in Sources */,
 				CDCD704F41EF514E8BCFA6F6 /* Trip.swift in Sources */,
+				7E8C1DCAB21B4A63AAA4CC01 /* PersistedTrip.swift in Sources */,
+				A806D9D0FFBA449189342687 /* TripStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,6 +259,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D7237ECFBADD5EB54438E264 /* TripTests.swift in Sources */,
+				AE4464155B4747EFBCAEC3FA /* TripStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
