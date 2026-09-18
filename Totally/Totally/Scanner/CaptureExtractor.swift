@@ -59,15 +59,21 @@ enum CaptureExtractor {
         }
 
         let candidates = physicalLines.compactMap { line -> (line: RecognizedLine, pence: Int)? in
-            // Ignore per-unit "small print" prices (e.g. "39.5p per 100g"):
-            // they aren't the shelf price we want to capture.
+            // Structural exclusions come first — these are the "has a unit
+            // after it" lines a human reads past to find the money: per-unit
+            // small print ("39.5p per 100g"), weights ("340g", "6 x 30g"),
+            // and the internal product code ("42032"). They must never be
+            // treated as the shelf price even if they look numeric.
             guard !isPerUnitPrice(line.text) else { return nil }
+            guard !isWeight(line.text) else { return nil }
+            guard !isProductCode(line.text) else { return nil }
             guard let pence = parsePrice(from: line.text) else { return nil }
             return (line, pence)
         }
 
-        // The bounding box area is the signal for "biggest number = price":
-        // shelf labels print the price in the largest font on the tag.
+        // Bounding-box area is only a *tiebreaker*: once the structural rules
+        // above have narrowed the field to money-shaped, non-excluded lines,
+        // the headline price is the one printed largest on the tag.
         guard let priceMatch = candidates.max(by: { $0.line.boundingArea < $1.line.boundingArea }) else {
             return nil
         }
@@ -174,6 +180,16 @@ enum CaptureExtractor {
             let matched = String(normalized[match])
             let digits = matched.filter { $0.isNumber }
             return Int(digits)
+        }
+
+        // A bare, money-shaped decimal with EXACTLY two decimal places and no
+        // currency marker (e.g. "1.09") -> pounds.pence. On many Aldi tags the
+        // "£" is a small superscript that OCR reads on a separate line, leaving
+        // the headline price as a plain "1.09". Two decimals is what makes it
+        // money: a weight like "1.5" (one decimal) or an integer like "340" is
+        // NOT a price and must not match here.
+        if normalized.range(of: #"^\s*\d+\.\d{2}\s*$"#, options: .regularExpression) != nil {
+            return poundsMatchToPence(normalized.trimmingCharacters(in: .whitespaces))
         }
 
         return nil
