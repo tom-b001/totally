@@ -291,7 +291,10 @@ struct HomeView: View {
         .keyboardType(.numberPad)
         .multilineTextAlignment(.center)
         .font(.body.monospacedDigit())
-        .frame(minWidth: 32)
+        // Fixed width keeps the greedy TextField from expanding to fill the
+        // row and shoving the -/+ buttons to the edges; 44pt centres up to
+        // two digits (max qty 99) while staying tappable/editable.
+        .frame(width: 44)
         .focused($quantityFieldFocused)
         .disabled(!isEditing)
         .onTapGesture {
