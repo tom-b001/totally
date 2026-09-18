@@ -25,10 +25,19 @@ final class VisionKitScanner: Scanner {
     /// user in the camera indefinitely (they can also always tap Cancel).
     static var scanTimeout: Duration = .seconds(10)
 
+    /// How long a captured label is remembered so a matching re-read is
+    /// ignored, so lingering on/walking past a label doesn't double-add it.
+    /// Instance (not static) so concurrently-running tests can't race on a
+    /// shared value. See docs/architecture/scanner.md.
+    var duplicateSuppressionWindow: Duration = .seconds(3)
+
     var isPresenting = false
 
     private var continuation: CheckedContinuation<ScanResult, Never>?
     private var timeoutTask: Task<Void, Never>?
+    private let clock = ContinuousClock()
+    private var lastCapture: Capture?
+    private var lastCaptureAt: ContinuousClock.Instant?
 
     func scanNextItem() async -> ScanResult {
         await withCheckedContinuation { continuation in
@@ -57,7 +66,27 @@ final class VisionKitScanner: Scanner {
             logger.debug("extract(from:) found no plausible price in this batch")
             return
         }
+
+        if isDuplicate(of: capture) {
+            logger.debug("suppressing duplicate re-read of \"\(capture.name, privacy: .public)\" at \(capture.priceInPence)p")
+            return
+        }
+
+        lastCapture = capture
+        lastCaptureAt = clock.now
         resolve(.captured(capture))
+    }
+
+    /// `true` when `capture` matches the last label we resolved a capture
+    /// for, within `duplicateSuppressionWindow`. Only name + price are
+    /// compared, so a low-confidence read still counts as a duplicate of an
+    /// earlier confident one for the same label (and vice versa).
+    private func isDuplicate(of capture: Capture) -> Bool {
+        guard let lastCapture, let lastCaptureAt else { return false }
+        guard lastCapture.name == capture.name, lastCapture.priceInPence == capture.priceInPence else {
+            return false
+        }
+        return clock.now - lastCaptureAt < duplicateSuppressionWindow
     }
 
     /// Called by the camera view if the user backs out or the camera isn't

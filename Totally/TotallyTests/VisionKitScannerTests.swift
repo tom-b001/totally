@@ -80,4 +80,96 @@ struct VisionKitScannerTests {
         }
         #expect(scanner.isPresenting == false)
     }
+
+    @Test
+    func duplicateReadWithinWindowIsSuppressed() async {
+        // Holding the camera on one label, or re-reading it within a few
+        // seconds, must add the item only once: a matching re-read is
+        // ignored rather than resolving a second `.captured`.
+        let scanner = VisionKitScanner()
+        let lines = [
+            RecognizedLine(text: "Oat Milk 1L", boundingArea: 100, confidence: 0.9),
+            RecognizedLine(text: "89p", boundingArea: 400, confidence: 0.9),
+        ]
+
+        async let firstResult = scanner.scanNextItem()
+        while !scanner.isPresenting {
+            await Task.yield()
+        }
+        scanner.handleRecognizedText(lines)
+        let first = await firstResult
+        #expect(first == .captured(Capture(name: "Oat Milk 1L", priceInPence: 89, isConfident: true)))
+
+        async let secondResult = scanner.scanNextItem()
+        while !scanner.isPresenting {
+            await Task.yield()
+        }
+        // Same label, re-read immediately: should be suppressed, not re-added.
+        scanner.handleRecognizedText(lines)
+        // Give an (incorrect) resolution a chance to propagate before we
+        // assert the scan is still waiting.
+        await Task.yield()
+        #expect(scanner.isPresenting == true, "a suppressed duplicate must not resolve the scan")
+
+        scanner.handleCancel()
+        let second = await secondResult
+        #expect(second == .cancelled)
+    }
+
+    @Test
+    func differentLabelRightAfterIsNotSuppressed() async {
+        let scanner = VisionKitScanner()
+
+        async let firstResult = scanner.scanNextItem()
+        while !scanner.isPresenting {
+            await Task.yield()
+        }
+        scanner.handleRecognizedText([
+            RecognizedLine(text: "Oat Milk 1L", boundingArea: 100, confidence: 0.9),
+            RecognizedLine(text: "89p", boundingArea: 400, confidence: 0.9),
+        ])
+        _ = await firstResult
+
+        async let secondResult = scanner.scanNextItem()
+        while !scanner.isPresenting {
+            await Task.yield()
+        }
+        scanner.handleRecognizedText([
+            RecognizedLine(text: "Bananas", boundingArea: 100, confidence: 0.9),
+            RecognizedLine(text: "59p", boundingArea: 400, confidence: 0.9),
+        ])
+
+        let second = await secondResult
+        #expect(second == .captured(Capture(name: "Bananas", priceInPence: 59, isConfident: true)))
+    }
+
+    @Test
+    func duplicateAfterWindowExpiresIsCapturedAgain() async {
+        let scanner = VisionKitScanner()
+        scanner.duplicateSuppressionWindow = .milliseconds(20)
+
+        let lines = [
+            RecognizedLine(text: "Oat Milk 1L", boundingArea: 100, confidence: 0.9),
+            RecognizedLine(text: "89p", boundingArea: 400, confidence: 0.9),
+        ]
+
+        async let firstResult = scanner.scanNextItem()
+        while !scanner.isPresenting {
+            await Task.yield()
+        }
+        scanner.handleRecognizedText(lines)
+        _ = await firstResult
+
+        try? await Task.sleep(for: .milliseconds(50))
+
+        async let secondResult = scanner.scanNextItem()
+        while !scanner.isPresenting {
+            await Task.yield()
+        }
+        // Same label, but the suppression window has elapsed: captures again.
+        scanner.handleRecognizedText(lines)
+
+        let second = await secondResult
+        #expect(second == .captured(Capture(name: "Oat Milk 1L", priceInPence: 89, isConfident: true)))
+    }
 }
