@@ -117,7 +117,7 @@ struct CaptureExtractorTests {
         let capture = CaptureExtractor.extract(from: lines)
 
         #expect(capture?.priceInPence == 79)
-        #expect(capture?.name == "DOMINION")
+        #expect(capture?.name == "DOMINION Imperials/ Mintoes/ Humbugs")
         #expect(capture?.isConfident == true)
     }
 

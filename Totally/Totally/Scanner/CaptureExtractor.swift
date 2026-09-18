@@ -72,15 +72,11 @@ enum CaptureExtractor {
             return nil
         }
 
-        // Name = the largest text line that isn't a price and isn't the Aldi
-        // product code (a bare 4-6 digit number).
-        let nameCandidates = physicalLines.filter { line in
-            line.text != priceMatch.line.text
-                && !line.text.isEmpty
-                && parsePrice(from: line.text) == nil
-                && !isProductCode(line.text)
-        }
-        let name = nameCandidates.max(by: { $0.boundingArea < $1.boundingArea })?.text ?? ""
+        // Name: prefer the largest-area *block* that isn't the price block,
+        // joining its lines so a multi-line name ("DOMINION\nImperials/
+        // Mintoes/ Humbugs\n200g") is kept whole rather than truncated to its
+        // first line. Price/per-unit/code/weight lines within it are dropped.
+        let name = bestName(from: lines, excludingPriceLine: priceMatch.line.text)
 
         let plausiblePrice = plausiblePriceRange.contains(priceMatch.pence)
         // Confidence only counts against us when it's actually reported
@@ -105,6 +101,54 @@ enum CaptureExtractor {
     /// marker. Not a name and not a price.
     private static func isProductCode(_ text: String) -> Bool {
         text.range(of: #"^\d{4,6}$"#, options: .regularExpression) != nil
+    }
+
+    /// A bare pack size / weight line like `200g`, `1L`, `6 x 30g`, `500ml`.
+    private static func isWeight(_ text: String) -> Bool {
+        text.range(
+            of: #"(?i)^\d+(\.\d+)?\s*(g|kg|ml|l|cl|x\b.*)$"#,
+            options: .regularExpression
+        ) != nil
+    }
+
+    /// Builds the product name from the largest-area *block* that isn't the
+    /// price block. The block's lines are joined (so a multi-line name stays
+    /// whole), with price/per-unit/code/weight/empty lines removed, and a
+    /// trailing weight/size line dropped.
+    private static func bestName(from blocks: [RecognizedLine], excludingPriceLine priceLine: String) -> String {
+        // The name block is the largest-area block that isn't purely the price
+        // and carries at least one plain (non-price/code/weight) line.
+        let nameBlock = blocks
+            .filter { block in
+                let lines = physicalLines(of: block.text)
+                let hasPlainLine = lines.contains { line in
+                    !line.isEmpty
+                        && line != priceLine
+                        && parsePrice(from: line) == nil
+                        && !isProductCode(line)
+                        && !isWeight(line)
+                }
+                return hasPlainLine
+            }
+            .max(by: { $0.boundingArea < $1.boundingArea })
+
+        guard let nameBlock else { return "" }
+
+        let kept = physicalLines(of: nameBlock.text).filter { line in
+            !line.isEmpty
+                && line != priceLine
+                && !isPerUnitPrice(line)
+                && parsePrice(from: line) == nil
+                && !isProductCode(line)
+                && !isWeight(line)
+        }
+        return kept.joined(separator: " ")
+    }
+
+    /// Splits a recognised text block into trimmed, non-empty physical lines.
+    private static func physicalLines(of text: String) -> [String] {
+        text.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
     }
 
 
