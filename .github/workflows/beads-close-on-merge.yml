@@ -116,3 +116,5 @@ jobs:
             "Failed to close bead \`$BEAD_ID\` / push beads state. Check the run: $RUN_URL — the bead is still open and must be closed manually."
 
 # retest totally-hv6
+
+# retest 3
