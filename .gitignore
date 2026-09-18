@@ -4,6 +4,7 @@
 *.db
 .beads-credential-key
 .beads/proxieddb/
+.beads.gate.lock
 
 # Passive beads exports — real sync is via Dolt (bd dolt push), so don't track these
 .beads/issues.jsonl
