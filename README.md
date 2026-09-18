@@ -67,3 +67,7 @@ and the product name. So the app reads the label as text. See
 Work is tracked with [beads](https://github.com/gastownhall/beads) (`bd`). Run
 `bd ready` to see available work; the plan is staged as three milestones
 (runnable basket → OCR scanning → robustness).
+
+Each task is built on a `bead/<id>-<slug>` branch and lands via a pull request.
+On merge, a GitHub Action closes the corresponding bead and syncs beads state
+automatically, so a merged PR always leaves the tracker up to date.
