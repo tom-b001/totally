@@ -52,4 +52,32 @@ struct VisionKitScannerTests {
         #expect(scanResult == .cancelled)
         #expect(scanner.isPresenting == false)
     }
+
+    @Test
+    func unparseableTextEventuallyResolvesFailedWithoutRequiringCancel() async {
+        // A regression test for getting stuck in the camera forever: if no
+        // batch of recognized text ever yields a plausible price, the scan
+        // must still resolve (as .failed) once the timeout elapses, rather
+        // than leaving `isPresenting` true indefinitely.
+        let scanner = VisionKitScanner()
+        VisionKitScanner.scanTimeout = .milliseconds(50)
+        defer { VisionKitScanner.scanTimeout = .seconds(10) }
+
+        async let result = scanner.scanNextItem()
+
+        while !scanner.isPresenting {
+            await Task.yield()
+        }
+
+        scanner.handleRecognizedText([
+            RecognizedLine(text: "no price here", boundingArea: 100, confidence: 0.9),
+        ])
+
+        let scanResult = await result
+        guard case .failed = scanResult else {
+            Issue.record("expected .failed, got \(scanResult)")
+            return
+        }
+        #expect(scanner.isPresenting == false)
+    }
 }
