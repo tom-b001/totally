@@ -53,6 +53,52 @@ should you pick and boot a simulator. Never use a bare `-destination
 'generic/platform=iOS Simulator'` or a fixed device name that forces a new
 device to launch when one is already running.
 
+## Xcode Project Conventions
+
+**New Swift files are NOT auto-discovered — you must edit `project.pbxproj`
+by hand.** This project uses classic (non-synchronized) PBXGroups, not
+Xcode 16's filesystem-synchronized folders. Adding a `.swift` file requires
+four manual edits to `Totally/Totally.xcodeproj/project.pbxproj`:
+1. A `PBXBuildFile` entry
+2. A `PBXFileReference` entry
+3. Adding that file reference into the right `PBXGroup` (e.g. `Domain`,
+   `Persistence`, `Scanner`)
+4. Adding the build-file entry to the target's `Sources` build phase
+
+Look at a prior file-adding commit (e.g. `git show 68036d1 --
+Totally/Totally.xcodeproj/project.pbxproj`, which added `Persistence/`) for
+the exact shape to copy. Forgetting any one of the four edits means the file
+compiles-but-isn't-linked or doesn't show up in Xcode.
+
+**`Info.plist` is intentionally minimal** (just launch screen + supported
+orientations) — there are no usage-description keys yet. Any bead that adds
+a new hardware/privacy-sensitive capability (camera, location, photo
+library, etc.) must add its own `NSXxxUsageDescription` key; nothing else
+will remind you.
+
+**Camera/VisionKit code cannot be exercised in the Simulator.** For beads
+touching `DataScannerViewController` or similar camera APIs, "verification"
+means compile success plus unit tests on the pure/testable logic — not an
+actual live scan. Don't hold up a PR waiting for simulator camera output
+that will never appear.
+
+**UI wiring convention:** new modal screens (sheets/full-screen covers)
+follow the completion-closure pattern already used by `ManualEntryView`
+(the presenter — e.g. `HomeView` — owns the `@State` and passes an `onAdd`
+style closure into the modal) rather than a shared view model. Follow this
+shape for new scanner/editor screens for consistency.
+
+## Bead Selection: Confirming Milestone Completion
+
+When applying the depth-first milestone heuristic, don't just eyeball
+`bd ready` — confirm a milestone is actually done with:
+```bash
+bd show <epic-id>
+```
+This prints each child's status and an explicit `eligible for close` line
+once all children are closed, which is a faster and more reliable signal
+than inferring completion from what's missing in `bd ready --type=task`.
+
 ## Non-Interactive Shell Commands
 
 **ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.
