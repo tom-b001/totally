@@ -172,8 +172,15 @@ struct HomeView: View {
                 emptyState
             }
         } else {
-            List {
-                Section {
+            // The summary is a fixed view above the List rather than a pinned
+            // List section header: a plain List's pinned header doesn't
+            // reliably occlude rows scrolling behind it (they bleed through
+            // the system row background). Keeping it outside the scroll view
+            // makes it a genuine top layer the rows scroll underneath.
+            VStack(spacing: 0) {
+                summaryHeader
+                Divider()
+                List {
                     ForEach(trip.items) { item in
                         basketRow(item)
                     }
@@ -182,18 +189,9 @@ struct HomeView: View {
                             store.remove(id: trip.items[index].id)
                         }
                     }
-                } header: {
-                    VStack(spacing: 0) {
-                        summaryHeader
-                        Divider()
-                    }
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.systemBackground))
-                    .listRowInsets(EdgeInsets())
-                    .textCase(nil)
                 }
+                .listStyle(.plain)
             }
-            .listStyle(.plain)
         }
     }
 
