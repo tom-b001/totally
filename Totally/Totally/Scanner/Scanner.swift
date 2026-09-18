@@ -44,4 +44,21 @@ extension ScanResult {
         guard case .captured(let capture) = self, capture.isConfident else { return nil }
         return capture
     }
+
+    /// The pre-fill for the confirm card when the app is *unsure*, or `nil`
+    /// when no card should appear. A low-confidence capture pre-fills the
+    /// card with its best-guess name/price so the user can correct then add;
+    /// a failed read pre-fills an empty card so the user can type it in.
+    /// Confident captures (auto-added) and user cancellation show no card.
+    /// See docs/architecture/ui.md.
+    var captureToConfirm: Capture? {
+        switch self {
+        case .captured(let capture):
+            return capture.isConfident ? nil : capture
+        case .failed:
+            return Capture(name: "", priceInPence: 0, isConfident: false)
+        case .cancelled:
+            return nil
+        }
+    }
 }

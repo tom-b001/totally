@@ -14,11 +14,13 @@
 		CF8F7989AFDF426FA0C24C75 /* Scanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCF9049BB7043E3923BDC7F /* Scanner.swift */; };
 		33796AB104D04F87BFAB39B2 /* ScannerCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31396006AF24D2893D8FFA2 /* ScannerCameraView.swift */; };
 		BC5784B0B9FC4C78810BB161 /* VisionKitScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73FA53259C24414A9713CA6 /* VisionKitScanner.swift */; };
+		CC0000000000000000000001 /* ConfirmCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000002 /* ConfirmCardView.swift */; };
 		149C133934F1412A90ED4E21 /* VisionKitScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71C9D44269F4DC793EAFCAE /* VisionKitScannerTests.swift */; };
 		88D82F810CD29D2E6AEB130F /* CaptureExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02E2CA1351782F4245AD2E60 /* CaptureExtractor.swift */; };
 		7F668CD7CDC3547A8ADE7F14 /* CaptureExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E1E6FA454AEB67CD8489041 /* CaptureExtractorTests.swift */; };
 		FB79635F518948A1A6BBE2D1 /* CaptureFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433EFCB54A274CBA8F8E25B8 /* CaptureFeedback.swift */; };
 		44348D1E0BAB437AA5E856ED /* ScanResultAutoAddTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B7D9FE385374D149C5BED08 /* ScanResultAutoAddTests.swift */; };
+		CC0000000000000000000003 /* ScanResultConfirmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000004 /* ScanResultConfirmTests.swift */; };
 		67AC568F2C064A66923990E5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67AC568F2C064A66923990E4 /* HomeView.swift */; };
 		A1B2C3D4E5F60718293A4B5D /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* Money.swift */; };
 		A1B2C3D4E5F60718293A4B5F /* ManualEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5E /* ManualEntryView.swift */; };
@@ -47,11 +49,13 @@
 		8DCF9049BB7043E3923BDC7F /* Scanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Scanner.swift; sourceTree = "<group>"; };
 		B31396006AF24D2893D8FFA2 /* ScannerCameraView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScannerCameraView.swift; sourceTree = "<group>"; };
 		A73FA53259C24414A9713CA6 /* VisionKitScanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VisionKitScanner.swift; sourceTree = "<group>"; };
+		CC0000000000000000000002 /* ConfirmCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfirmCardView.swift; sourceTree = "<group>"; };
 		D71C9D44269F4DC793EAFCAE /* VisionKitScannerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VisionKitScannerTests.swift; sourceTree = "<group>"; };
 		02E2CA1351782F4245AD2E60 /* CaptureExtractor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CaptureExtractor.swift; sourceTree = "<group>"; };
 		7E1E6FA454AEB67CD8489041 /* CaptureExtractorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CaptureExtractorTests.swift; sourceTree = "<group>"; };
 		433EFCB54A274CBA8F8E25B8 /* CaptureFeedback.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CaptureFeedback.swift; sourceTree = "<group>"; };
 		4B7D9FE385374D149C5BED08 /* ScanResultAutoAddTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScanResultAutoAddTests.swift; sourceTree = "<group>"; };
+		CC0000000000000000000004 /* ScanResultConfirmTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScanResultConfirmTests.swift; sourceTree = "<group>"; };
 		33FD7A345F4B7691B65CD43F /* TripTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TripTests.swift; sourceTree = "<group>"; };
 		3DB8C17A9BA2434199F88A67 /* Totally.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Totally.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F2E614FB133B5BD60CBA11D /* Trip.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
@@ -109,6 +113,7 @@
 				D71C9D44269F4DC793EAFCAE /* VisionKitScannerTests.swift */,
 				7E1E6FA454AEB67CD8489041 /* CaptureExtractorTests.swift */,
 				4B7D9FE385374D149C5BED08 /* ScanResultAutoAddTests.swift */,
+				CC0000000000000000000004 /* ScanResultConfirmTests.swift */,
 			);
 			name = TotallyTests;
 			path = TotallyTests;
@@ -174,6 +179,7 @@
 				8DCF9049BB7043E3923BDC7F /* Scanner.swift */,
 				B31396006AF24D2893D8FFA2 /* ScannerCameraView.swift */,
 				A73FA53259C24414A9713CA6 /* VisionKitScanner.swift */,
+				CC0000000000000000000002 /* ConfirmCardView.swift */,
 				02E2CA1351782F4245AD2E60 /* CaptureExtractor.swift */,
 				433EFCB54A274CBA8F8E25B8 /* CaptureFeedback.swift */,
 			);
@@ -287,6 +293,7 @@
 				CF8F7989AFDF426FA0C24C75 /* Scanner.swift in Sources */,
 				33796AB104D04F87BFAB39B2 /* ScannerCameraView.swift in Sources */,
 				BC5784B0B9FC4C78810BB161 /* VisionKitScanner.swift in Sources */,
+				CC0000000000000000000001 /* ConfirmCardView.swift in Sources */,
 				88D82F810CD29D2E6AEB130F /* CaptureExtractor.swift in Sources */,
 				FB79635F518948A1A6BBE2D1 /* CaptureFeedback.swift in Sources */,
 			);
@@ -301,6 +308,7 @@
 				149C133934F1412A90ED4E21 /* VisionKitScannerTests.swift in Sources */,
 				7F668CD7CDC3547A8ADE7F14 /* CaptureExtractorTests.swift in Sources */,
 				44348D1E0BAB437AA5E856ED /* ScanResultAutoAddTests.swift in Sources */,
+				CC0000000000000000000003 /* ScanResultConfirmTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
