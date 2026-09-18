@@ -73,12 +73,16 @@ final class VisionKitScanner: Scanner {
 
         guard let capture = CaptureExtractor.extract(from: lines) else {
             logger.debug("extract(from:) found no plausible price in this batch")
-            // Losing the plausible read (camera panned away, text vanished)
-            // resets any in-progress dwell so it doesn't get accepted later
-            // just because the same text briefly reappears.
-            dwellCandidate = nil
-            dwellTask?.cancel()
-            dwellTask = nil
+            // A batch with no plausible price must NOT cancel a dwell already
+            // in progress. VisionKit delivers `didAdd` as per-frame deltas, so
+            // once a price has been read a later frame often re-adds only the
+            // name block (no price) — extracting from that partial batch finds
+            // nothing. Treating that as "the label went away" used to discard a
+            // valid, nearly-accepted read and time the scan out (totally-716.10).
+            // We keep the in-progress dwell; if the label has genuinely left
+            // the frame, either the dwell accepts the last good read (the same
+            // outcome a steady read gives) or a *different* plausible capture
+            // in a later batch replaces it below.
             return
         }
 

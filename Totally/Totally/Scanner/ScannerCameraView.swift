@@ -84,7 +84,18 @@ struct ScannerCameraView: UIViewControllerRepresentable {
             allItems: [RecognizedItem]
         ) {
             logger.debug("didAdd: \(addedItems.count) item(s), allItems: \(allItems.count)")
-            let lines: [RecognizedLine] = addedItems.compactMap { item in
+            // Forward the FULL current scene (`allItems`), not just this
+            // frame's delta (`addedItems`). VisionKit delivers didAdd with
+            // only the items that changed that frame: once a price block has
+            // been recognised, a later frame that merely re-adds the name
+            // block arrives as addedItems == [name] with no price. Extracting
+            // from that partial delta finds no price and (in VisionKitScanner)
+            // cancels an in-progress dwell on a valid price read, so the scan
+            // times out. Passing the deduped allItems snapshot means such a
+            // frame still "sees" the price block that's still on screen. When
+            // the price genuinely leaves frame it drops out of allItems too,
+            // so the pan-away dwell reset still works.
+            let lines: [RecognizedLine] = allItems.compactMap { item in
                 guard case .text(let text) = item else { return nil }
                 let confidence = text.observation.topCandidates(1).first?.confidence ?? 0
                 return RecognizedLine(
