@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct BasketItem: Identifiable, Equatable {
+struct BasketItem: Identifiable, Equatable, Codable {
     var id: UUID
     var name: String
     var quantity: Int            // >= 1

@@ -8,9 +8,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct HomeView: View {
-    @State private var trip = Trip()
+    let store: TripStore
+
+    private var trip: Trip { store.trip }
 
     @State private var showManualEntry = false
     @State private var showBudgetEditor = false
@@ -34,7 +37,7 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showManualEntry) {
                 ManualEntryView { name, unitPriceInPence, quantity in
-                    trip.add(name: name, unitPriceInPence: unitPriceInPence, quantity: quantity)
+                    store.add(name: name, unitPriceInPence: unitPriceInPence, quantity: quantity)
                 }
             }
             .alert("Set budget", isPresented: $showBudgetEditor) {
@@ -43,7 +46,7 @@ struct HomeView: View {
                 Button("Cancel", role: .cancel) {}
                 Button("Save") {
                     if let pence = Money.pence(fromPoundsString: budgetText) {
-                        trip.setBudget(pence)
+                        store.setBudget(pence)
                     }
                 }
             } message: {
@@ -55,7 +58,7 @@ struct HomeView: View {
                 titleVisibility: .visible
             ) {
                 Button("Clear basket", role: .destructive) {
-                    trip.startNewTrip()
+                    store.startNewTrip()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
@@ -128,7 +131,7 @@ struct HomeView: View {
                 }
                 .onDelete { indexSet in
                     for index in indexSet {
-                        trip.remove(id: trip.items[index].id)
+                        store.remove(id: trip.items[index].id)
                     }
                 }
             }
@@ -150,7 +153,7 @@ struct HomeView: View {
 
             HStack(spacing: 8) {
                 Button {
-                    trip.setQuantity(item.quantity - 1, for: item.id)
+                    store.setQuantity(item.quantity - 1, for: item.id)
                 } label: {
                     Image(systemName: "minus.circle")
                 }
@@ -158,7 +161,7 @@ struct HomeView: View {
                     .font(.body.monospacedDigit())
                     .frame(minWidth: 20)
                 Button {
-                    trip.setQuantity(item.quantity + 1, for: item.id)
+                    store.setQuantity(item.quantity + 1, for: item.id)
                 } label: {
                     Image(systemName: "plus.circle")
                 }
@@ -217,5 +220,9 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView()
+    let container = try! ModelContainer(
+        for: PersistedTrip.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    HomeView(store: TripStore(modelContext: container.mainContext))
 }
