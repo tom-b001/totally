@@ -40,9 +40,13 @@ Everything below is hidden behind this. The UI never sees Vision types.
   found, and steadiness (label held in frame briefly) into `isConfident`.
   Confident -> resolve and auto-close. Not confident -> still return a
   `Capture` but with `isConfident = false` so the UI shows the confirm card.
-- **Duplicate suppression**: remember the last captured label (its text/price)
-  for a few seconds; ignore a re-read that matches, so walking past or lingering
-  doesn't double-add.
+- **One capture per presentation**: a confident read resolves `scanNextItem()`
+  and closes the camera, so within a single presentation the same label is only
+  ever added once (lingering / walking past re-fires the same read, but the
+  session has already resolved). Re-opening the camera and pointing at the same
+  label again is treated as a deliberate "add this again" (e.g. buying two of an
+  item) and captures again — it is *not* suppressed, which previously caused a
+  re-scan to hang until the timeout (totally-716.11).
 
 ## Explicit non-goals
 

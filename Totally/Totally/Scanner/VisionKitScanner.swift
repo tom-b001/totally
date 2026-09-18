@@ -25,12 +25,6 @@ final class VisionKitScanner: Scanner {
     /// user in the camera indefinitely (they can also always tap Cancel).
     static var scanTimeout: Duration = .seconds(10)
 
-    /// How long a captured label is remembered so a matching re-read is
-    /// ignored, so lingering on/walking past a label doesn't double-add it.
-    /// Instance (not static) so concurrently-running tests can't race on a
-    /// shared value. See docs/architecture/scanner.md.
-    var duplicateSuppressionWindow: Duration = .seconds(3)
-
     /// How long recognised text must be held steady/pointed at before it's
     /// accepted as a `Capture`, so the camera doesn't grab transient/
     /// incidental text the instant it opens or while still moving toward
@@ -42,9 +36,6 @@ final class VisionKitScanner: Scanner {
 
     private var continuation: CheckedContinuation<ScanResult, Never>?
     private var timeoutTask: Task<Void, Never>?
-    private let clock = ContinuousClock()
-    private var lastCapture: Capture?
-    private var lastCaptureAt: ContinuousClock.Instant?
     private var dwellCandidate: Capture?
     private var dwellTask: Task<Void, Never>?
 
@@ -105,31 +96,22 @@ final class VisionKitScanner: Scanner {
     /// Called once `capture` has been held steady for `dwellDuration`.
     /// Still guards against the candidate having changed (or the scan
     /// already resolving) in the meantime.
+    ///
+    /// There is deliberately no cross-session duplicate suppression here.
+    /// A `.captured` result ends the session immediately (`resolve` nils the
+    /// continuation), so within one `scanNextItem()` lingering on a label can
+    /// only ever produce a single capture — the `continuation != nil` guard in
+    /// `resolve` swallows any later accept. Suppression state therefore only
+    /// ever affected a *deliberate* camera re-open on the same label, where the
+    /// correct behaviour is to capture again (e.g. buying two of an item), not
+    /// to silently swallow the read and strand the scan until the 10s timeout
+    /// (totally-716.11).
     private func acceptDwelledCandidate(_ capture: Capture) {
         guard dwellCandidate == capture else { return }
         dwellCandidate = nil
         dwellTask = nil
 
-        if isDuplicate(of: capture) {
-            logger.debug("suppressing duplicate re-read of \"\(capture.name, privacy: .public)\" at \(capture.priceInPence)p")
-            return
-        }
-
-        lastCapture = capture
-        lastCaptureAt = clock.now
         resolve(.captured(capture))
-    }
-
-    /// `true` when `capture` matches the last label we resolved a capture
-    /// for, within `duplicateSuppressionWindow`. Only name + price are
-    /// compared, so a low-confidence read still counts as a duplicate of an
-    /// earlier confident one for the same label (and vice versa).
-    private func isDuplicate(of capture: Capture) -> Bool {
-        guard let lastCapture, let lastCaptureAt else { return false }
-        guard lastCapture.name == capture.name, lastCapture.priceInPence == capture.priceInPence else {
-            return false
-        }
-        return clock.now - lastCaptureAt < duplicateSuppressionWindow
     }
 
     /// Called by the camera view if the user backs out or the camera isn't
