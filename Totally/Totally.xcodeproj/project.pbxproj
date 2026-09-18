@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		035A75BE439A5133B6BF5FA9 /* BasketItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E5CE2DC632555539E6FAB3 /* BasketItem.swift */; };
 		67AC568F2C064A66923990E5 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67AC568F2C064A66923990E4 /* HomeView.swift */; };
+		A1B2C3D4E5F60718293A4B5D /* Money.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* Money.swift */; };
+		A1B2C3D4E5F60718293A4B5F /* ManualEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5E /* ManualEntryView.swift */; };
 		7A9D5A3F929FE3A408DECD96 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6411E10971BFE708977D3765 /* Foundation.framework */; };
 		CDCD704F41EF514E8BCFA6F6 /* Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F2E614FB133B5BD60CBA11D /* Trip.swift */; };
 		D32C12DD9923485C9D171223 /* TotallyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32C12DD9923485C9D171222 /* TotallyApp.swift */; };
@@ -34,6 +36,8 @@
 		6411E10971BFE708977D3765 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		66B1FC1468F64DBFA7238A25 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		67AC568F2C064A66923990E4 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* Money.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Money.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5E /* ManualEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualEntryView.swift; sourceTree = "<group>"; };
 		D32C12DD9923485C9D171222 /* TotallyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TotallyApp.swift; sourceTree = "<group>"; };
 		DEC0CE91404070627B3C13C5 /* TotallyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TotallyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EFA416176A1845E2A2771EF8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -97,6 +101,8 @@
 			children = (
 				D32C12DD9923485C9D171222 /* TotallyApp.swift */,
 				67AC568F2C064A66923990E4 /* HomeView.swift */,
+				A1B2C3D4E5F60718293A4B5E /* ManualEntryView.swift */,
+				A1B2C3D4E5F60718293A4B5C /* Money.swift */,
 				EFA416176A1845E2A2771EF8 /* Assets.xcassets */,
 				66B1FC1468F64DBFA7238A25 /* Info.plist */,
 				CA8C2D851CF0A1CC85CD3E8B /* Domain */,
@@ -221,6 +227,8 @@
 			files = (
 				D32C12DD9923485C9D171223 /* TotallyApp.swift in Sources */,
 				67AC568F2C064A66923990E5 /* HomeView.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5F /* ManualEntryView.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5D /* Money.swift in Sources */,
 				035A75BE439A5133B6BF5FA9 /* BasketItem.swift in Sources */,
 				CDCD704F41EF514E8BCFA6F6 /* Trip.swift in Sources */,
 			);
