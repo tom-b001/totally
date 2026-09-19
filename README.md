@@ -33,8 +33,8 @@ nothing. "New trip" clears the basket to start again.
 
 ## Why OCR instead of barcodes
 
-Aldi electronic shelf labels have no scannable product barcode and there is no
-public Aldi product database — but they do print a large, high-contrast price
+Some shelf labels have no scannable product barcode and there is not always 
+a public product database — but they do print a large, high-contrast price
 and the product name. So the app reads the label as text. See
 [ADR-0001](docs/adr/0001-ocr-not-barcode.md).
 
