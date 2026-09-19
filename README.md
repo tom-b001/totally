@@ -1,4 +1,4 @@
-# Aldi Budget Scanner
+# Shopping Budget Scanner
 
 A native iOS app for keeping a shopping trip under budget. Point the phone at an
 Aldi shelf label, and the app reads the price and product name straight off the
